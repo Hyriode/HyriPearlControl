@@ -1,0 +1,21 @@
+{
+  "team.blue.display": "&9Bleu",
+  "team.red.display": "&cRouge",
+  "team.green.display": "&aVert",
+  "team.yellow.display": "&eJaune",
+  "team.aqua.display": "&bAqua",
+  "team.pink.display": "&dRose",
+  "team.white.display": "&fBlanc",
+  "team.gray.display": "&8Gris",
+
+  "message.killed-by-player": "%player% &7a perdu une vie à cause de %killer%&7.",
+  "message.kill": "%player% &7a perdu une vie.",
+  "message.lives-remaining": "&7Il lui reste &3%lives% &7vies",
+  "message.life-remaining": "&7Il lui reste &31 &7vie",
+  "message.eliminated": "&cEliminé!",
+
+  "scoreboard.time.display": "Durée : ",
+  "scoreboard.players.display": "Joueurs : ",
+  "scoreboard.lives.display": "Vies : ",
+  "scoreboard.percentage.display": "Répulsion : "
+}
