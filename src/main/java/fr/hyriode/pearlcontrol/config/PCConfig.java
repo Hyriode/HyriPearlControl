@@ -17,7 +17,7 @@ import static fr.hyriode.hyrame.configuration.HyriConfigurationEntry.LocationEnt
  * Created by AstFaster
  * on 04/02/2022 at 21:06
  */
-public class HyriPCConfig implements IHyriConfiguration {
+public class PCConfig implements IHyriConfiguration {
 
     private static final Supplier<Location> DEFAULT_LOCATION = () -> new Location(IHyrame.WORLD.get(), 0, 0, 0, 0, 0);
 
@@ -32,7 +32,7 @@ public class HyriPCConfig implements IHyriConfiguration {
     private final FileConfiguration config;
     private final JavaPlugin plugin;
 
-    public HyriPCConfig(JavaPlugin plugin) {
+    public PCConfig(JavaPlugin plugin) {
         this.plugin = plugin;
         this.config = plugin.getConfig();
 

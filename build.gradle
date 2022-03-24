@@ -34,7 +34,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'fr.hyriode:hyrame:1.1.6'
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
 }
 
 processResources {

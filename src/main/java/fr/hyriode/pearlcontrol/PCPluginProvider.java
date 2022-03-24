@@ -8,13 +8,13 @@ import org.bukkit.plugin.java.JavaPlugin;
  * Created by AstFaster
  * on 04/02/2022 at 20:58
  */
-public class HyriPCProvider implements IPluginProvider {
+public class PCPluginProvider implements IPluginProvider {
 
     private static final String PACKAGE = "fr.hyriode.pearlcontrol";
 
     private final JavaPlugin plugin;
 
-    public HyriPCProvider(JavaPlugin plugin) {
+    public PCPluginProvider(JavaPlugin plugin) {
         this.plugin = plugin;
     }
 

@@ -3,8 +3,8 @@ package fr.hyriode.pearlcontrol;
 import fr.hyriode.hyrame.HyrameLoader;
 import fr.hyriode.hyrame.IHyrame;
 import fr.hyriode.hyrame.language.IHyriLanguageManager;
-import fr.hyriode.pearlcontrol.config.HyriPCConfig;
-import fr.hyriode.pearlcontrol.game.HyriPCGame;
+import fr.hyriode.pearlcontrol.config.PCConfig;
+import fr.hyriode.pearlcontrol.game.PCGame;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.ConsoleCommandSender;
@@ -23,8 +23,8 @@ public class HyriPearlControl extends JavaPlugin {
 
     private static IHyriLanguageManager languageManager;
 
-    private HyriPCConfig config;
-    private HyriPCGame game;
+    private PCConfig config;
+    private PCGame game;
 
     private IHyrame hyrame;
 
@@ -40,15 +40,15 @@ public class HyriPearlControl extends JavaPlugin {
 
         log("Starting " + NAME + "...");
 
-        this.config = new HyriPCConfig(this);
+        this.config = new PCConfig(this);
         this.config.create();
         this.config.load();
-        this.hyrame = HyrameLoader.load(new HyriPCProvider(this));
+        this.hyrame = HyrameLoader.load(new PCPluginProvider(this));
 
         languageManager = this.hyrame.getLanguageManager();
 
-        this.game = new HyriPCGame(this.hyrame, this);
-        this.hyrame.getGameManager().registerGame(this.game);
+        this.game = new PCGame(this.hyrame, this);
+        this.hyrame.getGameManager().registerGame(() -> this.game);
     }
 
     @Override
@@ -84,11 +84,11 @@ public class HyriPearlControl extends JavaPlugin {
         return this.hyrame;
     }
 
-    public HyriPCGame getGame() {
+    public PCGame getGame() {
         return this.game;
     }
 
-    public HyriPCConfig getConfiguration() {
+    public PCConfig getConfiguration() {
         return this.config;
     }
 
