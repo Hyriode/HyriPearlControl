@@ -3,7 +3,9 @@ package fr.hyriode.pearlcontrol.listener;
 import fr.hyriode.api.HyriAPI;
 import fr.hyriode.api.event.HyriEventHandler;
 import fr.hyriode.hyrame.game.HyriGameState;
+import fr.hyriode.hyrame.game.event.player.HyriGameDeathEvent;
 import fr.hyriode.hyrame.game.event.player.HyriGameSpectatorEvent;
+import fr.hyriode.hyrame.language.HyriLanguageMessage;
 import fr.hyriode.hyrame.listener.HyriListener;
 import fr.hyriode.pearlcontrol.HyriPearlControl;
 import fr.hyriode.pearlcontrol.game.PCGame;
@@ -77,16 +79,33 @@ public class PlayerListener extends HyriListener<HyriPearlControl> {
         final Player player = event.getPlayer();
         final Location location = event.getTo();
 
-        if (this.plugin.getConfiguration().getGameArea().asArea().getMin().getY() >= location.getY()) {
-            if (game.getState() != HyriGameState.PLAYING) {
-                player.teleport(this.plugin.getConfiguration().getWorldSpawn());
+        if (game.getState() != HyriGameState.PLAYING) {
+            if (this.plugin.getConfiguration().getSpawnArea().asArea().getMin().getY() >= location.getY()) {
+                player.teleport(this.plugin.getConfiguration().getWorldSpawn().asBukkit().clone());
+            }
+        }
+
+        if (game.getState() == HyriGameState.PLAYING) {
+            if (this.plugin.getConfiguration().getMiddleArea().asArea().isInArea(event.getTo())) {
+                game.getPlayer(player.getUniqueId()).onEnterCapture();
+            } else {
+                game.getPlayer(player.getUniqueId()).onLeaveCapture();
             }
         }
     }
 
     @HyriEventHandler
     public void onSpectator(HyriGameSpectatorEvent event) {
-        event.getGamePlayer().getPlayer().teleport(this.plugin.getConfiguration().getWorldSpawn());
+        event.getGamePlayer().getPlayer().teleport(this.plugin.getConfiguration().getWorldSpawn().asBukkit().clone());
+    }
+
+    @HyriEventHandler
+    public void onDeath(HyriGameDeathEvent event) {
+        final PCGamePlayer gamePlayer = (PCGamePlayer) event.getGamePlayer();
+
+        if (gamePlayer.getLives() - 1 <= 0) {
+            event.getMessagesToAdd().add(HyriLanguageMessage.get("message.eliminated"));
+        }
     }
 
 }

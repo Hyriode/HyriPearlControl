@@ -1,21 +1,20 @@
 package fr.hyriode.pearlcontrol.game;
 
+import fr.hyriode.hyrame.actionbar.ActionBar;
 import fr.hyriode.hyrame.game.HyriGame;
 import fr.hyriode.hyrame.game.HyriGamePlayer;
 import fr.hyriode.hyrame.game.protocol.HyriLastHitterProtocol;
 import fr.hyriode.hyrame.item.ItemBuilder;
+import fr.hyriode.hyrame.language.HyriLanguageMessage;
 import fr.hyriode.pearlcontrol.HyriPearlControl;
+import fr.hyriode.pearlcontrol.api.PCStatistics;
 import fr.hyriode.pearlcontrol.game.scoreboard.PCScoreboard;
-import org.bukkit.ChatColor;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.List;
-import java.util.function.Function;
 
 /**
  * Project: HyriPearlControl
@@ -26,20 +25,33 @@ public class PCGamePlayer extends HyriGamePlayer {
 
     private double knockbackPercentage = 1.0D;
 
+    private final PCStatistics statistics;
+
     private PCScoreboard scoreboard;
+
+    private BukkitTask captureTask;
+    private int captureIndex;
 
     private BukkitTask invincibleTask;
     private boolean invincible = false;
+
+    private long connection;
 
     private int lives = 3;
 
     private HyriPearlControl plugin;
 
+    private PCGame game;
+
     public PCGamePlayer(HyriGame<?> game, Player player) {
         super(game, player);
+        this.game = (PCGame) game;
+        this.statistics = PCStatistics.get(player.getUniqueId());
     }
 
     void startGame() {
+        this.connection = System.currentTimeMillis();
+
         this.spawn(true);
 
         this.scoreboard = new PCScoreboard(this.plugin, this.plugin.getGame(), this.player);
@@ -51,7 +63,7 @@ public class PCGamePlayer extends HyriGamePlayer {
     }
 
     public void spawn(boolean inAir) {
-        final Location spawn = this.plugin.getConfiguration().getSpawn();
+        final Location spawn = this.plugin.getConfiguration().getSpawn().asBukkit().clone();
 
         this.player.setGameMode(GameMode.ADVENTURE);
         this.player.teleport(inAir ? spawn.clone().add(0.0D, 5.0D, 0.0D) : spawn);
@@ -66,43 +78,30 @@ public class PCGamePlayer extends HyriGamePlayer {
 
     public boolean kill() {
         final PCGame game = this.plugin.getGame();
-        final Player lastHitter = this.getLastHitter();
-        final Function<Player, String> messageKillEnd = target -> {
-            String result;
-            if (this.lives == 1) {
-                result = HyriPearlControl.getLanguageManager().getValue(target, "message.life-remaining");
-            } else if (this.lives == 0) {
-                result = HyriPearlControl.getLanguageManager().getValue(target, "message.eliminated");
-            } else {
-                result = HyriPearlControl.getLanguageManager().getValue(target, "message.lives-remaining").replace("%lives%", String.valueOf(this.lives));
-            }
-            return result;
-        };
+        final HyriLastHitterProtocol.LastHitter lastHitter = this.getLastHitter();
 
         this.setInvincible(true);
         this.lives--;
 
         if (lastHitter != null) {
-            final HyriGamePlayer lastHitterGamePlayer = this.game.getPlayer(lastHitter.getUniqueId());
+            lastHitter.asPlayer().getInventory().addItem(this.createEnderPearl(4));
 
-            this.game.sendMessageToAll(target -> {
-                final String killedByPlayer = HyriPearlControl.getLanguageManager().getValue(target, "message.killed-by-player")
-                        .replace("%player%", this.team.formatName(this.player));
+            final PCGamePlayer killer = (PCGamePlayer) lastHitter.asGamePlayer();
 
-                return killedByPlayer.replace("%killer%", lastHitterGamePlayer.getTeam().formatName(lastHitter)) + " " + messageKillEnd.apply(target);
-            });
-
-            lastHitter.getInventory().addItem(this.createEnderPearl(4));
-
-            this.game.getProtocolManager().getProtocol(HyriLastHitterProtocol.class).removeLastHitters(this.player);
-        } else {
-            this.game.sendMessageToAll(target -> {
-                final String killed = HyriPearlControl.getLanguageManager().getValue(target, "message.kill")
-                        .replace("%player%", this.team.formatName(this.player));
-
-                return killed + " " + messageKillEnd.apply(target);
-            });
+            if (this.hasLife()) {
+                killer.getStatistics().addKills(1);
+            } else {
+                killer.getStatistics().addFinalKills(1);
+            }
         }
+
+        if (this.lives == 1) {
+            this.game.sendMessageToAll(HyriLanguageMessage.get("message.lives-remaining"));
+        } else {
+            this.game.sendMessageToAll(HyriLanguageMessage.get("message.life-remaining"));
+        }
+
+        this.statistics.addDeaths(1);
 
         this.knockbackPercentage = 1.0D;
 
@@ -114,11 +113,11 @@ public class PCGamePlayer extends HyriGamePlayer {
         return false;
     }
 
-    public Player getLastHitter() {
+    public HyriLastHitterProtocol.LastHitter getLastHitter() {
         final List<HyriLastHitterProtocol.LastHitter> lastHitters = this.game.getProtocolManager().getProtocol(HyriLastHitterProtocol.class).getLastHitters(this.player);
 
         if (lastHitters != null) {
-            return lastHitters.get(0).getPlayer();
+            return lastHitters.get(0);
         }
         return null;
     }
@@ -163,8 +162,64 @@ public class PCGamePlayer extends HyriGamePlayer {
         }
     }
 
+    public void onEnterCapture() {
+        if (this.captureTask == null) {
+            for (PCGamePlayer gamePlayer : this.game.getPlayers()) {
+                if (gamePlayer.isInMiddleArea()) {
+                    this.game.setCaptureAllowed(false);
+                }
+            }
+
+            this.captureTask = Bukkit.getScheduler().runTaskTimerAsynchronously(this.plugin, () -> {
+                new ActionBar(ChatColor.GREEN + "" + (this.captureIndex * 10) + "%").send(this.player);
+
+                if (this.game.isCaptureAllowed()) {
+                    this.captureIndex++;
+
+                    if (this.captureIndex == 10) {
+                        // Fin de la game, le joueur est resté 10 secondes
+                        this.game.sendMessageToAll(target -> HyriLanguageMessage.get("message.zone-captured").getForPlayer(target).replace("%player%", this.formatNameWithTeam()));
+                        this.statistics.addCapturedAreas(1);
+
+                        this.captureTask.cancel();
+
+                        this.game.win(this.team);
+                    }
+                }
+            }, 20, 20);
+        }
+    }
+
+    public void onLeaveCapture() {
+        for (PCGamePlayer gamePlayer : this.game.getPlayers()) {
+            if (gamePlayer.isInMiddleArea()) {
+                this.game.setCaptureAllowed(false);
+                break;
+            }
+            this.game.setCaptureAllowed(true);
+        }
+
+        if (this.captureTask != null) {
+            this.captureTask.cancel();
+            this.captureTask = null;
+            this.captureIndex = 0;
+        }
+    }
+
+    public boolean isInMiddleArea() {
+        return this.captureTask != null;
+    }
+
     public PCScoreboard getScoreboard() {
         return this.scoreboard;
+    }
+
+    public PCStatistics getStatistics() {
+        return this.statistics;
+    }
+
+    public long getConnection() {
+        return this.connection;
     }
 
 }

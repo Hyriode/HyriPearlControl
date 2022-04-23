@@ -1,90 +1,41 @@
 package fr.hyriode.pearlcontrol.config;
 
-import fr.hyriode.hyrame.IHyrame;
-import fr.hyriode.hyrame.configuration.IHyriConfiguration;
 import fr.hyriode.hyrame.utils.Area;
-import fr.hyriode.pearlcontrol.HyriPearlControl;
-import org.bukkit.Location;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.plugin.java.JavaPlugin;
-
-import java.util.function.Supplier;
-
-import static fr.hyriode.hyrame.configuration.HyriConfigurationEntry.LocationEntry;
+import fr.hyriode.hyrame.utils.LocationWrapper;
+import fr.hyriode.hystia.api.config.IConfig;
 
 /**
  * Project: HyriPearlControl
  * Created by AstFaster
- * on 04/02/2022 at 21:06
+ * on 22/04/2022 at 16:19
  */
-public class PCConfig implements IHyriConfiguration {
+public class PCConfig implements IConfig {
 
-    private static final Supplier<Location> DEFAULT_LOCATION = () -> new Location(IHyrame.WORLD.get(), 0, 0, 0, 0, 0);
-
-    private Location spawn;
-    private final LocationEntry spawnEntry;
-
-    private Location worldSpawn;
-    private final LocationEntry worldSpawnEntry;
-
+    private final LocationWrapper spawn;
+    private final GameArea spawnArea;
+    private final LocationWrapper worldSpawn;
     private final GameArea gameArea;
 
-    private final FileConfiguration config;
-    private final JavaPlugin plugin;
+    /** The area where the player can win the game in the middle of the map */
+    private final GameArea middleArea;
 
-    public PCConfig(JavaPlugin plugin) {
-        this.plugin = plugin;
-        this.config = plugin.getConfig();
-
-        this.spawn = DEFAULT_LOCATION.get();
-        this.spawnEntry = new LocationEntry("spawn", this.config);
-        this.worldSpawn = DEFAULT_LOCATION.get();
-        this.worldSpawnEntry = new LocationEntry("world-spawn", config);
-        this.gameArea = new GameArea();
+    public PCConfig(LocationWrapper spawn, GameArea spawnArea, LocationWrapper worldSpawn, GameArea gameArea, GameArea middleArea) {
+        this.spawn = spawn;
+        this.spawnArea = spawnArea;
+        this.worldSpawn = worldSpawn;
+        this.gameArea = gameArea;
+        this.middleArea = middleArea;
     }
 
-    @Override
-    public void create() {
-        this.spawnEntry.setDefault(this.spawn);
-        this.worldSpawnEntry.setDefault(this.worldSpawn);
-
-        this.gameArea.create();
-
-        this.plugin.saveConfig();
-    }
-
-    @Override
-    public void load() {
-        HyriPearlControl.log("Loading configuration...");
-
-        this.spawn = this.spawnEntry.get();
-        this.worldSpawn = this.worldSpawnEntry.get();
-
-        this.gameArea.load();
-    }
-
-    @Override
-    public void save() {
-        HyriPearlControl.log("Saving configuration...");
-
-        this.spawnEntry.set(this.spawn);
-        this.worldSpawnEntry.set(this.worldSpawn);
-
-        this.gameArea.save();
-
-        this.plugin.saveConfig();
-    }
-
-    @Override
-    public FileConfiguration getConfig() {
-        return this.config;
-    }
-
-    public Location getSpawn() {
+    public LocationWrapper getSpawn() {
         return this.spawn;
     }
 
-    public Location getWorldSpawn() {
+    public GameArea getSpawnArea() {
+        return this.spawnArea;
+    }
+
+    public LocationWrapper getWorldSpawn() {
         return this.worldSpawn;
     }
 
@@ -92,55 +43,30 @@ public class PCConfig implements IHyriConfiguration {
         return this.gameArea;
     }
 
-    public class GameArea implements IHyriConfiguration {
+    public GameArea getMiddleArea() {
+        return this.middleArea;
+    }
 
-        private Location areaFirst;
-        private final LocationEntry areaFirstEntry;
-        private Location areaSecond;
-        private final LocationEntry areaSecondEntry;
+    public static class GameArea {
 
-        public GameArea() {
-            final String key = "area.";
+        private final LocationWrapper areaFirst;
+        private final LocationWrapper areaSecond;
 
-            this.areaFirst = DEFAULT_LOCATION.get();
-            this.areaFirstEntry = new LocationEntry(key + "first", config);
-            this.areaSecond = DEFAULT_LOCATION.get();
-            this.areaSecondEntry = new LocationEntry(key + "second", config);
+        public GameArea(LocationWrapper areaFirst, LocationWrapper areaSecond) {
+            this.areaFirst = areaFirst;
+            this.areaSecond = areaSecond;
         }
 
-        @Override
-        public void create() {
-            this.areaFirstEntry.setDefault(this.areaFirst);
-            this.areaSecondEntry.setDefault(this.areaSecond);
-        }
-
-        @Override
-        public void load() {
-            this.areaFirst = this.areaFirstEntry.get();
-            this.areaSecond = this.areaSecondEntry.get();
-        }
-
-        @Override
-        public void save() {
-            this.areaFirstEntry.set(this.areaFirst);
-            this.areaSecondEntry.set(this.areaSecond);
-        }
-
-        @Override
-        public FileConfiguration getConfig() {
-            return config;
-        }
-
-        public Location getAreaFirst() {
+        public LocationWrapper getAreaFirst() {
             return this.areaFirst;
         }
 
-        public Location getAreaSecond() {
+        public LocationWrapper getAreaSecond() {
             return this.areaSecond;
         }
 
         public Area asArea() {
-            return new Area(this.areaFirst, this.areaSecond);
+            return new Area(this.areaFirst.asBukkit(), this.areaSecond.asBukkit());
         }
 
     }

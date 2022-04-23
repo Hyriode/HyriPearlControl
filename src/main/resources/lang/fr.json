@@ -8,11 +8,11 @@
   "team.white.display": "&fBlanc",
   "team.gray.display": "&8Gris",
 
-  "message.killed-by-player": "%player% &7a perdu une vie à cause de %killer%&7.",
-  "message.kill": "%player% &7a perdu une vie.",
   "message.lives-remaining": "&7Il lui reste &3%lives% &7vies",
   "message.life-remaining": "&7Il lui reste &31 &7vie",
   "message.eliminated": "&cEliminé!",
+
+  "message.zone-captured": "%player% &7a capturé la &bzone centrale&f. &6VICTOIRE!",
 
   "scoreboard.time.display": "Durée : ",
   "scoreboard.players.display": "Joueurs : ",
