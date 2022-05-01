@@ -1,6 +1,7 @@
 package fr.hyriode.pearlcontrol.game;
 
 import fr.hyriode.api.HyriAPI;
+import fr.hyriode.api.player.IHyriPlayer;
 import fr.hyriode.hyrame.IHyrame;
 import fr.hyriode.hyrame.game.HyriGame;
 import fr.hyriode.hyrame.game.HyriGamePlayer;
@@ -10,16 +11,21 @@ import fr.hyriode.hyrame.game.protocol.HyriDeathProtocol;
 import fr.hyriode.hyrame.game.protocol.HyriLastHitterProtocol;
 import fr.hyriode.hyrame.game.protocol.HyriWaitingProtocol;
 import fr.hyriode.hyrame.game.team.HyriGameTeam;
-import fr.hyriode.hyrame.utils.Cuboid;
+import fr.hyriode.hyrame.game.util.HyriGameMessages;
+import fr.hyriode.hyrame.game.util.HyriRewardAlgorithm;
+import fr.hyriode.hyrame.language.HyriLanguageMessage;
+import fr.hyriode.hyrame.utils.block.Cuboid;
 import fr.hyriode.pearlcontrol.HyriPearlControl;
 import fr.hyriode.pearlcontrol.api.PCStatistics;
 import fr.hyriode.pearlcontrol.config.PCConfig;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -44,6 +50,7 @@ public class PCGame extends HyriGame<PCGamePlayer> {
         this.plugin = plugin;
         this.config = this.plugin.getConfiguration();
         this.worldSpawn = this.config.getWorldSpawn().asBukkit();
+        this.description = HyriLanguageMessage.get("message.game.description");
 
         this.registerTeams();
     }
@@ -75,14 +82,11 @@ public class PCGame extends HyriGame<PCGamePlayer> {
 
     @Override
     public void start() {
-        super.start();
-
         final PCConfig.GameArea spawnArea = this.config.getSpawnArea();
-
         final Cuboid cuboid = new Cuboid(spawnArea.getAreaFirst().asBukkit(), spawnArea.getAreaSecond().asBukkit());
 
         for (Block block : cuboid.getBlocks()) {
-            block.setType(Material.AIR);;
+            block.setType(Material.AIR);
         }
 
         final HyriDeathProtocol.Options.YOptions yOptions = new HyriDeathProtocol.Options.YOptions(this.config.getGameArea().asArea().getMin().getY());
@@ -96,6 +100,8 @@ public class PCGame extends HyriGame<PCGamePlayer> {
             return this.getPlayer(player).kill();
         }, this.createDeathScreen(), HyriDeathProtocol.ScreenHandler.Default.class).withOptions(new HyriDeathProtocol.Options().withYOptions(yOptions).withDeathSound(true)));
 
+        super.start();
+
         for (PCGamePlayer gamePlayer : this.players) {
             gamePlayer.startGame();
         }
@@ -105,8 +111,8 @@ public class PCGame extends HyriGame<PCGamePlayer> {
         return new HyriDeathProtocol.Screen(3, player -> {
             final PCGamePlayer gamePlayer = this.getPlayer(player.getUniqueId());
 
-            gamePlayer.spawn(true);
-            gamePlayer.setInvincibleTask(Bukkit.getScheduler().runTaskLaterAsynchronously(this.plugin, () -> gamePlayer.setInvincible(false), 3));
+            gamePlayer.spawn();
+            gamePlayer.setInvincibleTask(Bukkit.getScheduler().runTaskLaterAsynchronously(this.plugin, () -> gamePlayer.setInvincible(false), 4));
         });
     }
 
@@ -116,11 +122,11 @@ public class PCGame extends HyriGame<PCGamePlayer> {
         final PCStatistics statistics = player.getStatistics();
 
         if (this.getState() == HyriGameState.PLAYING) {
-            statistics.addDeaths(1);
             statistics.setPlayedTime(player.getStatistics().getPlayedTime() + player.getConnection());
         }
 
         statistics.update(p.getUniqueId());
+
         super.handleLogout(p);
     }
 
@@ -128,8 +134,51 @@ public class PCGame extends HyriGame<PCGamePlayer> {
     public void win(HyriGameTeam winner) {
         super.win(winner);
 
-        for (HyriGamePlayer player : winner.getPlayers()) {
-            this.getPlayer(player.getUUID()).getStatistics().addVictories(1);
+        if (winner == null) {
+            return;
+        }
+
+        for (PCGamePlayer gamePlayer : this.players) {
+            if (winner.contains(gamePlayer)) {
+                gamePlayer.getStatistics().addVictories(1);
+            }
+
+            final Player player = gamePlayer.getPlayer();
+            final List<String> killsLines = new ArrayList<>();
+            final List<PCGamePlayer> topKillers = new ArrayList<>(this.players);
+
+            topKillers.sort((o1, o2) -> (int) (o2.getStatistics().getKills() - o1.getStatistics().getKills()));
+
+            for (int i = 0; i <= 2; i++) {
+                final PCGamePlayer endPlayer = topKillers.size() > i ? topKillers.get(i) : null;
+                final String line = HyriLanguageMessage.get("message.game.end.kills").getForPlayer(player).replace("%position%", HyriLanguageMessage.get("message.game.end." + (i + 1)).getForPlayer(player));
+
+                if (endPlayer == null) {
+                    killsLines.add(line.replace("%player%", HyriLanguageMessage.get("message.game.end.nobody").getForPlayer(player))
+                            .replace("%kills%", "0"));
+                    continue;
+                }
+
+                killsLines.add(line.replace("%player%", HyriAPI.get().getPlayerManager().getPlayer(endPlayer.getUUID()).getNameWithRank())
+                        .replace("%kills%", String.valueOf(endPlayer.getStatistics().getKills())));
+            }
+
+            final int kills = (int) gamePlayer.getStatistics().getKills();
+            final boolean isWinner = winner.contains(gamePlayer);
+            final long hyris = HyriRewardAlgorithm.getHyris(kills, gamePlayer.getPlayedTime(), isWinner);
+            final long xp = HyriRewardAlgorithm.getXP(kills, gamePlayer.getPlayedTime(), isWinner);
+            final List<String> rewards = new ArrayList<>();
+
+            rewards.add(ChatColor.LIGHT_PURPLE + String.valueOf(hyris) + " Hyris");
+            rewards.add(ChatColor.GREEN + String.valueOf(xp) + " XP");
+
+            final IHyriPlayer account = gamePlayer.asHyriode();
+
+            account.getHyris().add(hyris, false);
+            account.getNetworkLeveling().addExperience(xp);
+            account.update();
+
+            player.spigot().sendMessage(HyriGameMessages.createWinMessage(this, player, winner, killsLines, rewards));
         }
     }
 

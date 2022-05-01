@@ -79,17 +79,23 @@ public class PlayerListener extends HyriListener<HyriPearlControl> {
         final Player player = event.getPlayer();
         final Location location = event.getTo();
 
-        if (game.getState() != HyriGameState.PLAYING) {
+        if (game.getState().isAccessible()) {
             if (this.plugin.getConfiguration().getSpawnArea().asArea().getMin().getY() >= location.getY()) {
                 player.teleport(this.plugin.getConfiguration().getWorldSpawn().asBukkit().clone());
             }
         }
 
         if (game.getState() == HyriGameState.PLAYING) {
+            final PCGamePlayer gamePlayer = game.getPlayer(player.getUniqueId());
+
+            if (gamePlayer.isDead() || gamePlayer.isSpectator()) {
+                return;
+            }
+
             if (this.plugin.getConfiguration().getMiddleArea().asArea().isInArea(event.getTo())) {
-                game.getPlayer(player.getUniqueId()).onEnterCapture();
+                gamePlayer.onEnterCapture();
             } else {
-                game.getPlayer(player.getUniqueId()).onLeaveCapture();
+                gamePlayer.onLeaveCapture();
             }
         }
     }

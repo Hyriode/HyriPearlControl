@@ -8,14 +8,22 @@
   "team.white.display": "&fBlanc",
   "team.gray.display": "&8Gris",
 
+  "message.game.description": "&fContrôlez la zone ou poussez tous vos adversaires\n&fdans le vide pour remporter la partie. Utilisez\n&fvos perles pour vous rattraper et survivre.",
+
+  "message.game.end.1": "&61er Tueur",
+  "message.game.end.2": "&62ème Tueur",
+  "message.game.end.3": "&63ème Tueur",
+  "message.game.end.nobody": "&7Personne",
+  "message.game.end.kills": "%position% &7- %player% &7- %kills%",
+
   "message.lives-remaining": "&7Il lui reste &3%lives% &7vies",
   "message.life-remaining": "&7Il lui reste &31 &7vie",
   "message.eliminated": "&cEliminé!",
 
   "message.zone-captured": "%player% &7a capturé la &bzone centrale&f. &6VICTOIRE!",
 
-  "scoreboard.time.display": "Durée : ",
-  "scoreboard.players.display": "Joueurs : ",
-  "scoreboard.lives.display": "Vies : ",
-  "scoreboard.percentage.display": "Répulsion : "
+  "scoreboard.time.display": "Durée: ",
+  "scoreboard.players.display": "Joueurs: ",
+  "scoreboard.lives.display": "Vies: ",
+  "scoreboard.percentage.display": "Répulsion: "
 }

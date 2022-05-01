@@ -8,6 +8,14 @@
   "team.white.display": "&fWhite",
   "team.gray.display": "&8Gray",
 
+  "message.game.description": "&fControl the area or push all your opponents into\n&fthe void and to win the game. Use your pearl s\n&fto catch up and survive.",
+
+  "message.game.end.1": "&61st Killer",
+  "message.game.end.2": "&62nd Killer",
+  "message.game.end.3": "&63rd Killer",
+  "message.game.end.nobody": "&7Nobody",
+  "message.game.end.kills": "%position% &7- %player% &7- %kills%",
+
   "message.lives-remaining": "&7He has &3%lives% &7lives remaining.",
   "message.life-remaining": "&7He has &31 &7life remaining.",
   "message.eliminated": "&cEliminated!",

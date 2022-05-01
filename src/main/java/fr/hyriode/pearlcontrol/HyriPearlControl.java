@@ -1,10 +1,12 @@
 package fr.hyriode.pearlcontrol;
 
 import fr.hyriode.api.HyriAPI;
+import fr.hyriode.api.server.IHyriServer;
 import fr.hyriode.hyrame.HyrameLoader;
 import fr.hyriode.hyrame.IHyrame;
 import fr.hyriode.hyrame.language.IHyriLanguageManager;
 import fr.hyriode.hyrame.utils.LocationWrapper;
+import fr.hyriode.hystia.api.config.IConfig;
 import fr.hyriode.pearlcontrol.config.PCConfig;
 import fr.hyriode.pearlcontrol.game.PCGame;
 import fr.hyriode.pearlcontrol.game.PCGameType;
@@ -14,7 +16,7 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.UUID;
-import java.util.function.BiConsumer;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
 /**
@@ -45,32 +47,25 @@ public class HyriPearlControl extends JavaPlugin {
 
         log("Starting " + NAME + "...");
 
-        //this.config = HyriAPI.get().getServer().getConfig(PCConfig.class);
+        final UUID world = IHyrame.WORLD.get().getUID();
+
+        // Default config for all pearl control maps
+        /*final PCConfig.GameArea spawnArea = new PCConfig.GameArea(new LocationWrapper(world, 30, 229, -26), new LocationWrapper(world, -19, 187, 20));
+        final PCConfig.GameArea gameArea = new PCConfig.GameArea(new LocationWrapper(world, -23, 130, -23), new LocationWrapper(world, -23, 80, 23));
+        final PCConfig.GameArea middleArea = new PCConfig.GameArea(new LocationWrapper(world, -2, 102, -2), new LocationWrapper(world, 2, 99, 2));
+        final LocationWrapper spawn = new LocationWrapper(world, 0.5, 100, 0.5, -90, 0);
+        final LocationWrapper worldSpawn = new LocationWrapper(world, 0.5, 200.5, 0.5, -90, 0);
+        final IConfig config = new PCConfig(spawn, spawnArea, worldSpawn, gameArea, middleArea);*/
+
+        this.config = HyriAPI.get().getServer().getConfig(PCConfig.class);
         this.hyrame = HyrameLoader.load(new PCPluginProvider(this));
 
-        final UUID id = IHyrame.WORLD.get().getUID();
-        final PCConfig config = new PCConfig(new LocationWrapper(id, 0.5, 102, 0.5, -90, 0),
-                new PCConfig.GameArea(new LocationWrapper(id, 27, 216, -19), new LocationWrapper(id, -21, 191, 16)),
-                new LocationWrapper(id, 0.5, 200, 0.5, -90, 0),
-                new PCConfig.GameArea(new LocationWrapper(id, 22, 85, -20), new LocationWrapper(id, -27, 135, 28)),
-                new PCConfig.GameArea(new LocationWrapper(id, -2, 101, 3), new LocationWrapper(id, 3, 99, 2)));
-
-        // TODO Endstone
-        HyriAPI.get().getHystiaAPI().getConfigManager().saveConfig(config, "pearlcontrol", PCGameType.NORMAL.getName(), "Nether").whenComplete((aBoolean, throwable) -> {
-            if (aBoolean) {
-                System.out.println("Config sauvegardé!");
-            }
-        });
-        HyriAPI.get().getHystiaAPI().getWorldManager().saveWorld(id, "pearlcontrol", PCGameType.NORMAL.getName(), "Nether").whenComplete((aBoolean, throwable) -> {
-            if (aBoolean) {
-                System.out.println("Map sauvegardé!");
-            }
-        });
-
-        /*languageManager = this.hyrame.getLanguageManager();
+        languageManager = this.hyrame.getLanguageManager();
 
         this.game = new PCGame(this.hyrame, this);
-        this.hyrame.getGameManager().registerGame(() -> this.game);*/
+        this.hyrame.getGameManager().registerGame(() -> this.game);
+
+        HyriAPI.get().getServer().setState(IHyriServer.State.READY);
     }
 
     @Override

@@ -1,5 +1,7 @@
 package fr.hyriode.pearlcontrol.game;
 
+import fr.hyriode.api.HyriAPI;
+import fr.hyriode.api.player.IHyriPlayer;
 import fr.hyriode.hyrame.actionbar.ActionBar;
 import fr.hyriode.hyrame.game.HyriGame;
 import fr.hyriode.hyrame.game.HyriGamePlayer;
@@ -49,24 +51,24 @@ public class PCGamePlayer extends HyriGamePlayer {
         this.statistics = PCStatistics.get(player.getUniqueId());
     }
 
+    public IHyriPlayer asHyriode() {
+        return HyriAPI.get().getPlayerManager().getPlayer(this.player.getUniqueId());
+    }
+
     void startGame() {
         this.connection = System.currentTimeMillis();
 
-        this.spawn(true);
+        this.spawn();
 
         this.scoreboard = new PCScoreboard(this.plugin, this.plugin.getGame(), this.player);
         this.scoreboard.show();
     }
 
     public void spawn() {
-        this.spawn(false);
-    }
-
-    public void spawn(boolean inAir) {
         final Location spawn = this.plugin.getConfiguration().getSpawn().asBukkit().clone();
 
         this.player.setGameMode(GameMode.ADVENTURE);
-        this.player.teleport(inAir ? spawn.clone().add(0.0D, 5.0D, 0.0D) : spawn);
+        this.player.teleport(spawn);
         this.player.getInventory().addItem(this.createEnderPearl(16));
     }
 
@@ -96,14 +98,18 @@ public class PCGamePlayer extends HyriGamePlayer {
         }
 
         if (this.lives == 1) {
-            this.game.sendMessageToAll(HyriLanguageMessage.get("message.lives-remaining"));
-        } else {
             this.game.sendMessageToAll(HyriLanguageMessage.get("message.life-remaining"));
+        } else if (this.lives != 0){
+            this.game.sendMessageToAll(target -> HyriLanguageMessage.get("message.lives-remaining").getForPlayer(target).replace("%lives%", String.valueOf(this.lives)));
         }
 
         this.statistics.addDeaths(1);
 
         this.knockbackPercentage = 1.0D;
+
+        for (PCGamePlayer gamePlayer : this.game.getPlayers()) {
+            gamePlayer.getScoreboard().update();
+        }
 
         if (this.hasLife()) {
             return true;
@@ -156,7 +162,7 @@ public class PCGamePlayer extends HyriGamePlayer {
 
     public void addKnockbackPercentage() {
         if (this.knockbackPercentage < 800) {
-            this.knockbackPercentage += 6.5D;
+            this.knockbackPercentage += this.game.getType() == PCGameType.CHAOS ? 9.5D : 6.5D;
 
             this.scoreboard.update();
         }
@@ -165,7 +171,7 @@ public class PCGamePlayer extends HyriGamePlayer {
     public void onEnterCapture() {
         if (this.captureTask == null) {
             for (PCGamePlayer gamePlayer : this.game.getPlayers()) {
-                if (gamePlayer.isInMiddleArea()) {
+                if (gamePlayer.isInMiddleArea() && gamePlayer != this) {
                     this.game.setCaptureAllowed(false);
                 }
             }
@@ -191,19 +197,23 @@ public class PCGamePlayer extends HyriGamePlayer {
     }
 
     public void onLeaveCapture() {
-        for (PCGamePlayer gamePlayer : this.game.getPlayers()) {
-            if (gamePlayer.isInMiddleArea()) {
-                this.game.setCaptureAllowed(false);
-                break;
-            }
-            this.game.setCaptureAllowed(true);
-        }
-
         if (this.captureTask != null) {
             this.captureTask.cancel();
             this.captureTask = null;
             this.captureIndex = 0;
         }
+
+        this.game.setCaptureAllowed(true);
+
+        int amount = 0;
+
+        for (PCGamePlayer gamePlayer : this.game.getPlayers()) {
+            if (gamePlayer.isInMiddleArea()) {
+                amount++;
+            }
+        }
+
+        this.game.setCaptureAllowed(amount <= 1);
     }
 
     public boolean isInMiddleArea() {
