@@ -10,8 +10,8 @@
 
   "message.game.description": "&fContrôlez la zone ou poussez tous vos adversaires\n&fdans le vide pour remporter la partie. Utilisez\n&fvos perles pour vous rattraper et survivre.",
 
-  "message.game.end.1": "&61er Tueur",
-  "message.game.end.2": "&62ème Tueur",
+  "message.game.end.1": "&e1er Tueur",
+  "message.game.end.2": "&f2ème Tueur",
   "message.game.end.3": "&63ème Tueur",
   "message.game.end.nobody": "&7Personne",
   "message.game.end.kills": "%position% &7- %player% &7- %kills%",

@@ -7,15 +7,26 @@ import fr.hyriode.hyrame.game.event.player.HyriGameDeathEvent;
 import fr.hyriode.hyrame.game.event.player.HyriGameSpectatorEvent;
 import fr.hyriode.hyrame.language.HyriLanguageMessage;
 import fr.hyriode.hyrame.listener.HyriListener;
+import fr.hyriode.hyrame.utils.block.BlockUtil;
 import fr.hyriode.pearlcontrol.HyriPearlControl;
 import fr.hyriode.pearlcontrol.game.PCGame;
 import fr.hyriode.pearlcontrol.game.PCGamePlayer;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.entity.EnderPearl;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.ProjectileLaunchEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.inventory.InventoryHolder;
 
 /**
  * Project: HyriPearlControl
@@ -28,6 +39,33 @@ public class PlayerListener extends HyriListener<HyriPearlControl> {
         super(plugin);
 
         HyriAPI.get().getEventBus().register(this);
+    }
+
+    @EventHandler
+    public void onInteract(PlayerInteractEvent event) {
+        final Block block = event.getClickedBlock();
+
+        if (block != null) {
+            if (block.getState() instanceof InventoryHolder) {
+                event.setCancelled(true);
+            }
+        }
+    }
+
+    @EventHandler
+    public void onThrow(ProjectileLaunchEvent event) {
+        final Projectile entity = event.getEntity();
+
+        if (entity instanceof EnderPearl) {
+            final Entity shooter = (Entity) entity.getShooter();
+
+            if (shooter instanceof Player) {
+                final Player player = (Player) shooter;
+                final PCGamePlayer gamePlayer = this.plugin.getGame().getPlayer(player);
+
+                gamePlayer.addPearl((EnderPearl) entity);
+            }
+        }
     }
 
     @EventHandler

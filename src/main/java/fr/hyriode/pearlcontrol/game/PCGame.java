@@ -121,20 +121,24 @@ public class PCGame extends HyriGame<PCGamePlayer> {
         final PCGamePlayer player = this.getPlayer(p.getUniqueId());
         final PCStatistics statistics = player.getStatistics();
 
-        if (this.getState() == HyriGameState.PLAYING) {
-            statistics.setPlayedTime(player.getStatistics().getPlayedTime() + player.getConnection());
+        if (!this.getState().isAccessible()) {
+            statistics.setPlayedTime(player.getStatistics().getPlayedTime() + player.getPlayedTime());
         }
 
         statistics.update(p.getUniqueId());
 
         super.handleLogout(p);
+
+        if (this.getState() == HyriGameState.PLAYING) {
+            this.win(this.getWinner());
+        }
     }
 
     @Override
     public void win(HyriGameTeam winner) {
         super.win(winner);
 
-        if (winner == null) {
+        if (winner == null || this.getState() != HyriGameState.ENDED) {
             return;
         }
 
@@ -154,16 +158,16 @@ public class PCGame extends HyriGame<PCGamePlayer> {
                 final String line = HyriLanguageMessage.get("message.game.end.kills").getForPlayer(player).replace("%position%", HyriLanguageMessage.get("message.game.end." + (i + 1)).getForPlayer(player));
 
                 if (endPlayer == null) {
-                    killsLines.add(line.replace("%player%", HyriLanguageMessage.get("message.game.end.nobody").getForPlayer(player))
-                            .replace("%kills%", "0"));
+                    killsLines.add(line.replace("%player%", HyriLanguageMessage.get("message.game.end.nobody").getForPlayer(player)).replace("%kills%", "0"));
                     continue;
                 }
 
-                killsLines.add(line.replace("%player%", HyriAPI.get().getPlayerManager().getPlayer(endPlayer.getUUID()).getNameWithRank())
-                        .replace("%kills%", String.valueOf(endPlayer.getStatistics().getKills())));
+                final IHyriPlayer account = HyriAPI.get().getPlayerManager().getPlayer(endPlayer.getUUID());
+
+                killsLines.add(line.replace("%player%", account.getNameWithRank(true)).replace("%kills%", String.valueOf(endPlayer.getStatistics().getKills())));
             }
 
-            final int kills = (int) gamePlayer.getStatistics().getKills();
+            final int kills = gamePlayer.getKills();
             final boolean isWinner = winner.contains(gamePlayer);
             final long hyris = HyriRewardAlgorithm.getHyris(kills, gamePlayer.getPlayedTime(), isWinner);
             final long xp = HyriRewardAlgorithm.getXP(kills, gamePlayer.getPlayedTime(), isWinner);
@@ -174,7 +178,7 @@ public class PCGame extends HyriGame<PCGamePlayer> {
 
             final IHyriPlayer account = gamePlayer.asHyriode();
 
-            account.getHyris().add(hyris, false);
+            account.getHyris().add(hyris).withMessage(false).exec();
             account.getNetworkLeveling().addExperience(xp);
             account.update();
 

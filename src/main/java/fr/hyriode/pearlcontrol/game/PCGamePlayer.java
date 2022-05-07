@@ -8,14 +8,17 @@ import fr.hyriode.hyrame.game.HyriGamePlayer;
 import fr.hyriode.hyrame.game.protocol.HyriLastHitterProtocol;
 import fr.hyriode.hyrame.item.ItemBuilder;
 import fr.hyriode.hyrame.language.HyriLanguageMessage;
+import fr.hyriode.hyrame.utils.ThreadUtil;
 import fr.hyriode.pearlcontrol.HyriPearlControl;
 import fr.hyriode.pearlcontrol.api.PCStatistics;
 import fr.hyriode.pearlcontrol.game.scoreboard.PCScoreboard;
 import org.bukkit.*;
+import org.bukkit.entity.EnderPearl;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -37,18 +40,20 @@ public class PCGamePlayer extends HyriGamePlayer {
     private BukkitTask invincibleTask;
     private boolean invincible = false;
 
-    private long connection;
+    private final List<EnderPearl> pearls;
 
     private int lives = 3;
+    private int kills;
 
     private HyriPearlControl plugin;
 
-    private PCGame game;
+    private final PCGame game;
 
     public PCGamePlayer(HyriGame<?> game, Player player) {
         super(game, player);
         this.game = (PCGame) game;
         this.statistics = PCStatistics.get(player.getUniqueId());
+        this.pearls = new ArrayList<>();
     }
 
     public IHyriPlayer asHyriode() {
@@ -56,8 +61,6 @@ public class PCGamePlayer extends HyriGamePlayer {
     }
 
     void startGame() {
-        this.connection = System.currentTimeMillis();
-
         this.spawn();
 
         this.scoreboard = new PCScoreboard(this.plugin, this.plugin.getGame(), this.player);
@@ -82,6 +85,12 @@ public class PCGamePlayer extends HyriGamePlayer {
         final PCGame game = this.plugin.getGame();
         final HyriLastHitterProtocol.LastHitter lastHitter = this.getLastHitter();
 
+        for (EnderPearl pearl : this.pearls) {
+            if (pearl != null) {
+                pearl.remove();
+            }
+        }
+
         this.setInvincible(true);
         this.lives--;
 
@@ -91,6 +100,7 @@ public class PCGamePlayer extends HyriGamePlayer {
             final PCGamePlayer killer = (PCGamePlayer) lastHitter.asGamePlayer();
 
             if (this.hasLife()) {
+                killer.kills++;
                 killer.getStatistics().addKills(1);
             } else {
                 killer.getStatistics().addFinalKills(1);
@@ -189,7 +199,7 @@ public class PCGamePlayer extends HyriGamePlayer {
 
                         this.captureTask.cancel();
 
-                        this.game.win(this.team);
+                        ThreadUtil.backOnMainThread(this.plugin, () -> this.game.win(this.team));
                     }
                 }
             }, 20, 20);
@@ -216,6 +226,10 @@ public class PCGamePlayer extends HyriGamePlayer {
         this.game.setCaptureAllowed(amount <= 1);
     }
 
+    public int getKills() {
+        return this.kills;
+    }
+
     public boolean isInMiddleArea() {
         return this.captureTask != null;
     }
@@ -228,8 +242,12 @@ public class PCGamePlayer extends HyriGamePlayer {
         return this.statistics;
     }
 
-    public long getConnection() {
-        return this.connection;
+    public void addPearl(EnderPearl pearl) {
+        this.pearls.add(pearl);
+    }
+
+    public List<EnderPearl> getPearls() {
+        return this.pearls;
     }
 
 }
