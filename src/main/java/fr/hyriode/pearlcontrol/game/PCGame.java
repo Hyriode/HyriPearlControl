@@ -111,6 +111,10 @@ public class PCGame extends HyriGame<PCGamePlayer> {
         return new HyriDeathProtocol.Screen(3, player -> {
             final PCGamePlayer gamePlayer = this.getPlayer(player.getUniqueId());
 
+            if (gamePlayer == null) {
+                return;
+            }
+
             gamePlayer.spawn();
             gamePlayer.setInvincibleTask(Bukkit.getScheduler().runTaskLaterAsynchronously(this.plugin, () -> gamePlayer.setInvincible(false), 4));
         });

@@ -20,6 +20,7 @@
   "message.life-remaining": "&7He has &31 &7life remaining.",
   "message.eliminated": "&cEliminated!",
 
+  "message.zone.enter": "%player% &7started to capture the &bmiddle area&7!",
   "message.zone-captured": "%player% &7captured the &bmiddle area&f. &6VICTORY!",
 
   "scoreboard.time.display": "Time: ",

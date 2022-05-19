@@ -95,9 +95,11 @@ public class PCGamePlayer extends HyriGamePlayer {
         this.lives--;
 
         if (lastHitter != null) {
-            lastHitter.asPlayer().getInventory().addItem(this.createEnderPearl(4));
-
             final PCGamePlayer killer = (PCGamePlayer) lastHitter.asGamePlayer();
+
+            if (!killer.isSpectator() && !killer.isDead()) {
+                lastHitter.asPlayer().getInventory().addItem(this.createEnderPearl(4));
+            }
 
             if (this.hasLife()) {
                 killer.kills++;
@@ -190,6 +192,10 @@ public class PCGamePlayer extends HyriGamePlayer {
                 new ActionBar(ChatColor.GREEN + "" + (this.captureIndex * 10) + "%").send(this.player);
 
                 if (this.game.isCaptureAllowed()) {
+                    if  (this.captureIndex == 0) {
+                        this.game.sendMessageToAll(target -> HyriLanguageMessage.get("message.zone-enter").getForPlayer(target).replace("%player%", this.formatNameWithTeam()));
+                    }
+
                     this.captureIndex++;
 
                     if (this.captureIndex == 10) {
