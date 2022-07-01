@@ -31,6 +31,7 @@ public class PCGamePlayer extends HyriGamePlayer {
     private double knockbackPercentage = 1.0D;
 
     private final PCStatistics statistics;
+    private final PCStatistics.Data statisticsData;
 
     private PCScoreboard scoreboard;
 
@@ -53,16 +54,16 @@ public class PCGamePlayer extends HyriGamePlayer {
         super(game, player);
         this.game = (PCGame) game;
         this.statistics = PCStatistics.get(player.getUniqueId());
+        this.statisticsData = this.statistics.getData((PCGameType) this.game.getType());
         this.pearls = new ArrayList<>();
-    }
-
-    public IHyriPlayer asHyriode() {
-        return HyriAPI.get().getPlayerManager().getPlayer(this.player.getUniqueId());
     }
 
     void startGame() {
         this.spawn();
+        this.showScoreboard();
+    }
 
+    public void showScoreboard() {
         this.scoreboard = new PCScoreboard(this.plugin, this.plugin.getGame(), this.player);
         this.scoreboard.show();
     }
@@ -103,9 +104,9 @@ public class PCGamePlayer extends HyriGamePlayer {
 
             if (this.hasLife()) {
                 killer.kills++;
-                killer.getStatistics().addKills(1);
+                killer.getStatisticsData().addKills(1);
             } else {
-                killer.getStatistics().addFinalKills(1);
+                killer.getStatisticsData().addFinalKills(1);
             }
         }
 
@@ -115,7 +116,7 @@ public class PCGamePlayer extends HyriGamePlayer {
             this.game.sendMessageToAll(target -> HyriLanguageMessage.get("message.lives-remaining").getForPlayer(target).replace("%lives%", String.valueOf(this.lives)));
         }
 
-        this.statistics.addDeaths(1);
+        this.statisticsData.addDeaths(1);
 
         this.knockbackPercentage = 1.0D;
 
@@ -129,6 +130,14 @@ public class PCGamePlayer extends HyriGamePlayer {
 
         game.win(game.getWinner());
         return false;
+    }
+
+    public void onLeave() {
+        if (this.captureTask != null) {
+            this.captureTask.cancel();
+            this.captureTask = null;
+            this.captureIndex = 0;
+        }
     }
 
     public HyriLastHitterProtocol.LastHitter getLastHitter() {
@@ -189,24 +198,24 @@ public class PCGamePlayer extends HyriGamePlayer {
             }
 
             this.captureTask = Bukkit.getScheduler().runTaskTimerAsynchronously(this.plugin, () -> {
-                new ActionBar(ChatColor.GREEN + "" + (this.captureIndex * 10) + "%").send(this.player);
+                new ActionBar(ChatColor.GREEN + "Capture: " + (this.captureIndex * 10) + "%").send(this.player);
 
                 if (this.game.isCaptureAllowed()) {
-                    if  (this.captureIndex == 0) {
+                    if  (this.captureIndex == 1) {
                         this.game.sendMessageToAll(target -> HyriLanguageMessage.get("message.zone-enter").getForPlayer(target).replace("%player%", this.formatNameWithTeam()));
                     }
-
-                    this.captureIndex++;
 
                     if (this.captureIndex == 10) {
                         // Fin de la game, le joueur est resté 10 secondes
                         this.game.sendMessageToAll(target -> HyriLanguageMessage.get("message.zone-captured").getForPlayer(target).replace("%player%", this.formatNameWithTeam()));
-                        this.statistics.addCapturedAreas(1);
+                        this.statisticsData.addCapturedAreas(1);
 
                         this.captureTask.cancel();
 
                         ThreadUtil.backOnMainThread(this.plugin, () -> this.game.win(this.team));
                     }
+
+                    this.captureIndex++;
                 }
             }, 20, 20);
         }
@@ -246,6 +255,10 @@ public class PCGamePlayer extends HyriGamePlayer {
 
     public PCStatistics getStatistics() {
         return this.statistics;
+    }
+
+    public PCStatistics.Data getStatisticsData() {
+        return this.statisticsData;
     }
 
     public void addPearl(EnderPearl pearl) {

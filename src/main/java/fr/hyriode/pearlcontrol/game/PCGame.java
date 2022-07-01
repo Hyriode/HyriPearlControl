@@ -1,6 +1,8 @@
 package fr.hyriode.pearlcontrol.game;
 
 import fr.hyriode.api.HyriAPI;
+import fr.hyriode.api.leveling.IHyriLeveling;
+import fr.hyriode.api.money.IHyriMoney;
 import fr.hyriode.api.player.IHyriPlayer;
 import fr.hyriode.hyrame.IHyrame;
 import fr.hyriode.hyrame.game.HyriGame;
@@ -18,6 +20,7 @@ import fr.hyriode.hyrame.utils.block.Cuboid;
 import fr.hyriode.pearlcontrol.HyriPearlControl;
 import fr.hyriode.pearlcontrol.api.PCStatistics;
 import fr.hyriode.pearlcontrol.config.PCConfig;
+import fr.hyriode.pearlcontrol.game.scoreboard.PCScoreboard;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -51,6 +54,8 @@ public class PCGame extends HyriGame<PCGamePlayer> {
         this.config = this.plugin.getConfiguration();
         this.worldSpawn = this.config.getWorldSpawn().asBukkit();
         this.description = HyriLanguageMessage.get("message.game.description");
+        this.reconnectionTime = 30;
+        this.waitingRoom = new PCWaitingRoom(this);
 
         this.registerTeams();
     }
@@ -59,6 +64,13 @@ public class PCGame extends HyriGame<PCGamePlayer> {
         for (PCGameTeam team : PCGameTeam.values()) {
             this.registerTeam(new HyriGameTeam(this, team.getName(), team.getDisplayName(), team.getColor(), 1));
         }
+    }
+
+    @Override
+    public void postRegistration() {
+        super.postRegistration();
+
+        this.protocolManager.getProtocol(HyriWaitingProtocol.class).withTeamSelector(false);
     }
 
     @Override
@@ -74,10 +86,38 @@ public class PCGame extends HyriGame<PCGamePlayer> {
     }
 
     @Override
-    public void postRegistration() {
-        super.postRegistration();
+    public void handleReconnection(Player player) {
+        super.handleReconnection(player);
 
-        this.protocolManager.getProtocol(HyriWaitingProtocol.class).withTeamSelector(false);
+        final PCGamePlayer gamePlayer = this.getPlayer(player.getUniqueId());
+
+        if (!gamePlayer.isSpectator()) {
+            gamePlayer.spawn();
+            gamePlayer.showScoreboard();
+        }
+    }
+
+    @Override
+    public void handleLogout(Player p) {
+        final PCGamePlayer player = this.getPlayer(p.getUniqueId());
+        final PCStatistics statistics = player.getStatistics();
+        final PCStatistics.Data statisticsData = player.getStatisticsData();
+
+        player.onLeave();
+
+        if (!this.getState().isAccessible()) {
+            statisticsData.setPlayedTime(statisticsData.getPlayedTime() + player.getPlayedTime());
+        }
+
+        this.hyrame.getScoreboardManager().getScoreboards(PCScoreboard.class).forEach(PCScoreboard::update);
+
+        statistics.update(p.getUniqueId());
+
+        super.handleLogout(p);
+
+        if (this.getState() == HyriGameState.PLAYING) {
+            this.win(this.getWinner());
+        }
     }
 
     @Override
@@ -121,24 +161,6 @@ public class PCGame extends HyriGame<PCGamePlayer> {
     }
 
     @Override
-    public void handleLogout(Player p) {
-        final PCGamePlayer player = this.getPlayer(p.getUniqueId());
-        final PCStatistics statistics = player.getStatistics();
-
-        if (!this.getState().isAccessible()) {
-            statistics.setPlayedTime(player.getStatistics().getPlayedTime() + player.getPlayedTime());
-        }
-
-        statistics.update(p.getUniqueId());
-
-        super.handleLogout(p);
-
-        if (this.getState() == HyriGameState.PLAYING) {
-            this.win(this.getWinner());
-        }
-    }
-
-    @Override
     public void win(HyriGameTeam winner) {
         super.win(winner);
 
@@ -148,14 +170,14 @@ public class PCGame extends HyriGame<PCGamePlayer> {
 
         for (PCGamePlayer gamePlayer : this.players) {
             if (winner.contains(gamePlayer)) {
-                gamePlayer.getStatistics().addVictories(1);
+                gamePlayer.getStatisticsData().addVictories(1);
             }
 
             final Player player = gamePlayer.getPlayer();
             final List<String> killsLines = new ArrayList<>();
             final List<PCGamePlayer> topKillers = new ArrayList<>(this.players);
 
-            topKillers.sort((o1, o2) -> (int) (o2.getStatistics().getKills() - o1.getStatistics().getKills()));
+            topKillers.sort((o1, o2) -> (int) (o2.getStatisticsData().getKills() - o1.getStatisticsData().getKills()));
 
             for (int i = 0; i <= 2; i++) {
                 final PCGamePlayer endPlayer = topKillers.size() > i ? topKillers.get(i) : null;
@@ -168,22 +190,19 @@ public class PCGame extends HyriGame<PCGamePlayer> {
 
                 final IHyriPlayer account = HyriAPI.get().getPlayerManager().getPlayer(endPlayer.getUUID());
 
-                killsLines.add(line.replace("%player%", account.getNameWithRank(true)).replace("%kills%", String.valueOf(endPlayer.getStatistics().getKills())));
+                killsLines.add(line.replace("%player%", account.getNameWithRank(true)).replace("%kills%", String.valueOf(endPlayer.getStatisticsData().getKills())));
             }
 
+            final IHyriPlayer account = gamePlayer.asHyriPlayer();
             final int kills = gamePlayer.getKills();
             final boolean isWinner = winner.contains(gamePlayer);
-            final long hyris = HyriRewardAlgorithm.getHyris(kills, gamePlayer.getPlayedTime(), isWinner);
-            final long xp = HyriRewardAlgorithm.getXP(kills, gamePlayer.getPlayedTime(), isWinner);
+            final long earnedHyris = HyriRewardAlgorithm.getHyris(kills, gamePlayer.getPlayedTime(), isWinner);
+            final long earnedXP = HyriRewardAlgorithm.getXP(kills, gamePlayer.getPlayedTime(), isWinner);
             final List<String> rewards = new ArrayList<>();
 
-            rewards.add(ChatColor.LIGHT_PURPLE + String.valueOf(hyris) + " Hyris");
-            rewards.add(ChatColor.GREEN + String.valueOf(xp) + " XP");
+            rewards.add(ChatColor.LIGHT_PURPLE + String.valueOf(account.getHyris().add(earnedHyris).withMessage(false).exec()) + " Hyris");
+            rewards.add(ChatColor.GREEN + String.valueOf(account.getNetworkLeveling().addExperience(earnedXP)) + " XP");
 
-            final IHyriPlayer account = gamePlayer.asHyriode();
-
-            account.getHyris().add(hyris).withMessage(false).exec();
-            account.getNetworkLeveling().addExperience(xp);
             account.update();
 
             player.spigot().sendMessage(HyriGameMessages.createWinMessage(this, player, winner, killsLines, rewards));
@@ -192,8 +211,8 @@ public class PCGame extends HyriGame<PCGamePlayer> {
 
     @Override
     public void end() {
-        for (HyriGamePlayer player : this.players) {
-            this.getPlayer(player.getUUID()).getStatistics().addGamesPlayed(1);
+        for (PCGamePlayer player : this.players) {
+            player.getStatisticsData().addGamesPlayed(1);
         }
 
         super.end();

@@ -20,11 +20,19 @@
   "message.life-remaining": "&7Il lui reste &31 &7vie",
   "message.eliminated": "&cEliminé!",
 
-  "message.zone.enter": "%player% &7a commencé à capturer la &bzone centrale&7!",
+  "message.zone-enter": "%player% &7a commencé à capturer la &bzone centrale&7!",
   "message.zone-captured": "%player% &7a capturé la &bzone centrale&f. &6VICTOIRE!",
 
   "scoreboard.time.display": "Durée: ",
   "scoreboard.players.display": "Joueurs: ",
   "scoreboard.lives.display": "Vies: ",
-  "scoreboard.percentage.display": "Répulsion: "
+  "scoreboard.percentage.display": "Répulsion: ",
+
+  "waiting-room.npc.data.prefix.kills": "Kills",
+  "waiting-room.npc.data.prefix.final-kills": "Final kills",
+  "waiting-room.npc.data.prefix.deaths": "Morts",
+  "waiting-room.npc.data.prefix.victories": "Victoires",
+  "waiting-room.npc.data.prefix.games-played": "Parties jouées",
+  "waiting-room.npc.data.prefix.played-time": "Temps de jeu",
+  "waiting-room.npc.data.prefix.captured-areas": "Zones capturées"
 }

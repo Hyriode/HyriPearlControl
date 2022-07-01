@@ -20,11 +20,19 @@
   "message.life-remaining": "&7He has &31 &7life remaining.",
   "message.eliminated": "&cEliminated!",
 
-  "message.zone.enter": "%player% &7started to capture the &bmiddle area&7!",
+  "message.zone-enter": "%player% &7started to capture the &bmiddle area&7!",
   "message.zone-captured": "%player% &7captured the &bmiddle area&f. &6VICTORY!",
 
   "scoreboard.time.display": "Time: ",
   "scoreboard.players.display": "Players: ",
   "scoreboard.lives.display": "Lives: ",
-  "scoreboard.percentage.display": "Repulsion: "
+  "scoreboard.percentage.display": "Repulsion: ",
+
+  "waiting-room.npc.data.prefix.kills": "Kills",
+  "waiting-room.npc.data.prefix.final-kills": "Final kills",
+  "waiting-room.npc.data.prefix.deaths": "Deaths",
+  "waiting-room.npc.data.prefix.victories": "Victories",
+  "waiting-room.npc.data.prefix.games-played": "Games played",
+  "waiting-room.npc.data.prefix.played-time": "Played time",
+  "waiting-room.npc.data.prefix.captured-areas": "Captured areas"
 }
