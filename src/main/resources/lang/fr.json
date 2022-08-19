@@ -28,11 +28,33 @@
   "scoreboard.lives.display": "Vies: ",
   "scoreboard.percentage.display": "Répulsion: ",
 
+  "action-bar.capture.display": "&3Capture &8┃ &7En cours... &8(%percentage%%)",
+
   "waiting-room.npc.data.prefix.kills": "Kills",
   "waiting-room.npc.data.prefix.final-kills": "Final kills",
   "waiting-room.npc.data.prefix.deaths": "Morts",
   "waiting-room.npc.data.prefix.victories": "Victoires",
   "waiting-room.npc.data.prefix.games-played": "Parties jouées",
   "waiting-room.npc.data.prefix.played-time": "Temps de jeu",
-  "waiting-room.npc.data.prefix.captured-areas": "Zones capturées"
+  "waiting-room.npc.data.prefix.captured-areas": "Zones capturées",
+
+  "gui.host.pc-main.name": "&8PearlControl (Paramètres)",
+
+  "host.category.main.name": "&bPearlControl",
+  "host.category.main.description": "&7Modifie les paramètres\n&7liés au jeu.",
+
+  "host.option.spawn-ender-pearls.name": "&bEnderPearls &8(Apparition)",
+  "host.option.spawn-ender-pearls.description": "&7Définis le nombre d'EnderPearl\n&7à donner aux joueurs lors\n&7de leur apparition.",
+  "host.option.kill-ender-pearls.name": "&bEnderPearls &8(Kill)",
+  "host.option.kill-ender-pearls.description": "&7Définis le nombre d'EnderPearl\n&7à donner lorsqu'un kill\n&7est effectué.",
+  "host.option.allowing-capture.name": "&bCapture",
+  "host.option.allowing-capture.description": "&7Définis si la capture de\n&7zone est autorisée.",
+  "host.option.capture-time.name": "&bTemps de capture",
+  "host.option.capture-time.description": "&7Définis le temps nécessaire\n&7pour capturer la zone.",
+  "host.option.knockback-multiplier.name": "&bMultiplicateur de répulsion",
+  "host.option.knockback-multiplier.description": "&7Définis le mulitplicateur\n&7du taux de répulsion des\n&7joueurs.",
+  "host.option.lives.name": "&bVies",
+  "host.option.lives.description": "&7Définis le nombre de vies\n&7des joueurs avant de mourir.",
+  "host.option.respawn-time.name": "&bTemps de réapparition",
+  "host.option.respawn-time.description": "&7Définis le temps de réapparition\n&7des joueurs à leur mort."
 }

@@ -4,19 +4,14 @@ import fr.hyriode.api.HyriAPI;
 import fr.hyriode.api.server.IHyriServer;
 import fr.hyriode.hyrame.HyrameLoader;
 import fr.hyriode.hyrame.IHyrame;
-import fr.hyriode.hyrame.language.IHyriLanguageManager;
-import fr.hyriode.hyrame.utils.LocationWrapper;
-import fr.hyriode.hystia.api.config.IConfig;
 import fr.hyriode.pearlcontrol.config.PCConfig;
 import fr.hyriode.pearlcontrol.game.PCGame;
-import fr.hyriode.pearlcontrol.game.PCGameType;
+import fr.hyriode.pearlcontrol.game.host.PCHostManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
 /**
@@ -28,15 +23,19 @@ public class HyriPearlControl extends JavaPlugin {
 
     public static final String NAME = "PearlControl";
 
-    private static IHyriLanguageManager languageManager;
+    private static HyriPearlControl instance;
 
     private PCConfig config;
     private PCGame game;
+
+    private PCHostManager hostManager;
 
     private IHyrame hyrame;
 
     @Override
     public void onEnable() {
+        instance = this;
+
         final ChatColor color = ChatColor.GREEN;
         final ConsoleCommandSender sender = Bukkit.getConsoleSender();
 
@@ -46,8 +45,6 @@ public class HyriPearlControl extends JavaPlugin {
         sender.sendMessage(color + " |_| \\___\\__,_|_| |_|\\___\\___/_||_\\__|_| \\___/_|");
 
         log("Starting " + NAME + "...");
-
-        final UUID world = IHyrame.WORLD.get().getUID();
 
         // Default config for all pearl control maps
         /*final PCConfig.GameArea spawnArea = new PCConfig.GameArea(new LocationWrapper(world, 30, 229, -26), new LocationWrapper(world, -19, 187, 20));
@@ -60,10 +57,13 @@ public class HyriPearlControl extends JavaPlugin {
         this.config = HyriAPI.get().getServer().getConfig(PCConfig.class);
         this.hyrame = HyrameLoader.load(new PCPluginProvider(this));
 
-        languageManager = this.hyrame.getLanguageManager();
-
         this.game = new PCGame(this.hyrame, this);
         this.hyrame.getGameManager().registerGame(() -> this.game);
+
+        if (HyriAPI.get().getServer().isHost()) {
+            this.hostManager = new PCHostManager();
+            this.hostManager.attach();
+        }
 
         HyriAPI.get().getServer().setState(IHyriServer.State.READY);
     }
@@ -93,8 +93,8 @@ public class HyriPearlControl extends JavaPlugin {
         log(Level.INFO, msg);
     }
 
-    public static IHyriLanguageManager getLanguageManager() {
-        return languageManager;
+    public static HyriPearlControl get() {
+        return instance;
     }
 
     public IHyrame getHyrame() {
@@ -107,6 +107,10 @@ public class HyriPearlControl extends JavaPlugin {
 
     public PCConfig getConfiguration() {
         return this.config;
+    }
+
+    public PCHostManager getHostManager() {
+        return this.hostManager;
     }
 
 }

@@ -1,12 +1,10 @@
 package fr.hyriode.pearlcontrol.game;
 
 import fr.hyriode.api.HyriAPI;
-import fr.hyriode.api.leveling.IHyriLeveling;
-import fr.hyriode.api.money.IHyriMoney;
+import fr.hyriode.api.language.HyriLanguageMessage;
 import fr.hyriode.api.player.IHyriPlayer;
 import fr.hyriode.hyrame.IHyrame;
 import fr.hyriode.hyrame.game.HyriGame;
-import fr.hyriode.hyrame.game.HyriGamePlayer;
 import fr.hyriode.hyrame.game.HyriGameState;
 import fr.hyriode.hyrame.game.HyriGameType;
 import fr.hyriode.hyrame.game.protocol.HyriDeathProtocol;
@@ -15,7 +13,6 @@ import fr.hyriode.hyrame.game.protocol.HyriWaitingProtocol;
 import fr.hyriode.hyrame.game.team.HyriGameTeam;
 import fr.hyriode.hyrame.game.util.HyriGameMessages;
 import fr.hyriode.hyrame.game.util.HyriRewardAlgorithm;
-import fr.hyriode.hyrame.language.HyriLanguageMessage;
 import fr.hyriode.hyrame.utils.block.Cuboid;
 import fr.hyriode.pearlcontrol.HyriPearlControl;
 import fr.hyriode.pearlcontrol.api.PCStatistics;
@@ -23,7 +20,6 @@ import fr.hyriode.pearlcontrol.config.PCConfig;
 import fr.hyriode.pearlcontrol.game.scoreboard.PCScoreboard;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -40,9 +36,8 @@ import java.util.stream.Collectors;
  */
 public class PCGame extends HyriGame<PCGamePlayer> {
 
+    private boolean initialCaptureAllowing;
     private boolean captureAllowed;
-
-    private final Location worldSpawn;
 
     private final PCConfig config;
 
@@ -52,7 +47,6 @@ public class PCGame extends HyriGame<PCGamePlayer> {
         super(hyrame, plugin, HyriAPI.get().getGameManager().getGameInfo("pearlcontrol"), PCGamePlayer.class, HyriGameType.getFromData(PCGameType.values()));
         this.plugin = plugin;
         this.config = this.plugin.getConfiguration();
-        this.worldSpawn = this.config.getWorldSpawn().asBukkit();
         this.description = HyriLanguageMessage.get("message.game.description");
         this.reconnectionTime = 30;
         this.waitingRoom = new PCWaitingRoom(this);
@@ -77,8 +71,6 @@ public class PCGame extends HyriGame<PCGamePlayer> {
     public void handleLogin(Player player) {
         super.handleLogin(player);
 
-        player.teleport(this.worldSpawn);
-
         final UUID uuid = player.getUniqueId();
         final PCGamePlayer gamePlayer = this.getPlayer(uuid);
 
@@ -92,6 +84,7 @@ public class PCGame extends HyriGame<PCGamePlayer> {
         final PCGamePlayer gamePlayer = this.getPlayer(player.getUniqueId());
 
         if (!gamePlayer.isSpectator()) {
+            gamePlayer.removeLife();
             gamePlayer.spawn();
             gamePlayer.showScoreboard();
         }
@@ -111,7 +104,9 @@ public class PCGame extends HyriGame<PCGamePlayer> {
 
         this.hyrame.getScoreboardManager().getScoreboards(PCScoreboard.class).forEach(PCScoreboard::update);
 
-        statistics.update(p.getUniqueId());
+        if (!HyriAPI.get().getServer().isHost()) {
+            statistics.update(p.getUniqueId());
+        }
 
         super.handleLogout(p);
 
@@ -135,12 +130,14 @@ public class PCGame extends HyriGame<PCGamePlayer> {
         this.protocolManager.enableProtocol(new HyriDeathProtocol(this.hyrame, this.plugin, gamePlayer -> {
             final Player player = gamePlayer.getPlayer();
 
-            player.teleport(this.worldSpawn);
+            player.teleport(this.config.getWorldSpawn().asBukkit());
 
             return this.getPlayer(player).kill();
         }, this.createDeathScreen(), HyriDeathProtocol.ScreenHandler.Default.class).withOptions(new HyriDeathProtocol.Options().withYOptions(yOptions).withDeathSound(true)));
 
         super.start();
+
+        this.initialCaptureAllowing = PCValues.ALLOWING_CAPTURE.get();
 
         for (PCGamePlayer gamePlayer : this.players) {
             gamePlayer.startGame();
@@ -148,7 +145,7 @@ public class PCGame extends HyriGame<PCGamePlayer> {
     }
 
     private HyriDeathProtocol.Screen createDeathScreen() {
-        return new HyriDeathProtocol.Screen(3, player -> {
+        return new HyriDeathProtocol.Screen(Math.toIntExact(PCValues.RESPAWN_TIME.get()), player -> {
             final PCGamePlayer gamePlayer = this.getPlayer(player.getUniqueId());
 
             if (gamePlayer == null) {
@@ -181,16 +178,16 @@ public class PCGame extends HyriGame<PCGamePlayer> {
 
             for (int i = 0; i <= 2; i++) {
                 final PCGamePlayer endPlayer = topKillers.size() > i ? topKillers.get(i) : null;
-                final String line = HyriLanguageMessage.get("message.game.end.kills").getForPlayer(player).replace("%position%", HyriLanguageMessage.get("message.game.end." + (i + 1)).getForPlayer(player));
+                final String line = HyriLanguageMessage.get("message.game.end.kills").getValue(player).replace("%position%", HyriLanguageMessage.get("message.game.end." + (i + 1)).getValue(player));
 
                 if (endPlayer == null) {
-                    killsLines.add(line.replace("%player%", HyriLanguageMessage.get("message.game.end.nobody").getForPlayer(player)).replace("%kills%", "0"));
+                    killsLines.add(line.replace("%player%", HyriLanguageMessage.get("message.game.end.nobody").getValue(player)).replace("%kills%", "0"));
                     continue;
                 }
 
-                final IHyriPlayer account = HyriAPI.get().getPlayerManager().getPlayer(endPlayer.getUUID());
+                final IHyriPlayer account = HyriAPI.get().getPlayerManager().getPlayer(endPlayer.getUniqueId());
 
-                killsLines.add(line.replace("%player%", account.getNameWithRank(true)).replace("%kills%", String.valueOf(endPlayer.getStatisticsData().getKills())));
+                killsLines.add(line.replace("%player%", account.getNameWithRank(true)).replace("%kills%", String.valueOf(endPlayer.getKills())));
             }
 
             final IHyriPlayer account = gamePlayer.asHyriPlayer();
@@ -228,7 +225,7 @@ public class PCGame extends HyriGame<PCGamePlayer> {
     }
 
     public boolean isCaptureAllowed() {
-        return this.captureAllowed;
+        return this.initialCaptureAllowing && this.captureAllowed;
     }
 
     public void setCaptureAllowed(boolean captureAllowed) {

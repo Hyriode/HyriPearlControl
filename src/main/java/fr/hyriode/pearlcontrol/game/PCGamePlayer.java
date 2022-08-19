@@ -1,14 +1,13 @@
 package fr.hyriode.pearlcontrol.game;
 
-import fr.hyriode.api.HyriAPI;
-import fr.hyriode.api.player.IHyriPlayer;
 import fr.hyriode.hyrame.actionbar.ActionBar;
 import fr.hyriode.hyrame.game.HyriGame;
 import fr.hyriode.hyrame.game.HyriGamePlayer;
 import fr.hyriode.hyrame.game.protocol.HyriLastHitterProtocol;
 import fr.hyriode.hyrame.item.ItemBuilder;
-import fr.hyriode.hyrame.language.HyriLanguageMessage;
+import fr.hyriode.api.language.HyriLanguageMessage;
 import fr.hyriode.hyrame.utils.ThreadUtil;
+import fr.hyriode.hyrame.utils.VoidPlayer;
 import fr.hyriode.pearlcontrol.HyriPearlControl;
 import fr.hyriode.pearlcontrol.api.PCStatistics;
 import fr.hyriode.pearlcontrol.game.scoreboard.PCScoreboard;
@@ -43,7 +42,7 @@ public class PCGamePlayer extends HyriGamePlayer {
 
     private final List<EnderPearl> pearls;
 
-    private int lives = 3;
+    private int lives;
     private int kills;
 
     private HyriPearlControl plugin;
@@ -59,6 +58,7 @@ public class PCGamePlayer extends HyriGamePlayer {
     }
 
     void startGame() {
+        this.lives = PCValues.LIVES.get();
         this.spawn();
         this.showScoreboard();
     }
@@ -69,11 +69,15 @@ public class PCGamePlayer extends HyriGamePlayer {
     }
 
     public void spawn() {
+        if (this.player instanceof VoidPlayer) {
+            return;
+        }
+
         final Location spawn = this.plugin.getConfiguration().getSpawn().asBukkit().clone();
 
         this.player.setGameMode(GameMode.ADVENTURE);
         this.player.teleport(spawn);
-        this.player.getInventory().addItem(this.createEnderPearl(16));
+        this.player.getInventory().addItem(this.createEnderPearl(PCValues.SPAWN_ENDER_PEARLS.get()));
     }
 
     private ItemStack createEnderPearl(int amount) {
@@ -99,7 +103,7 @@ public class PCGamePlayer extends HyriGamePlayer {
             final PCGamePlayer killer = (PCGamePlayer) lastHitter.asGamePlayer();
 
             if (!killer.isSpectator() && !killer.isDead()) {
-                lastHitter.asPlayer().getInventory().addItem(this.createEnderPearl(4));
+                lastHitter.asPlayer().getInventory().addItem(this.createEnderPearl(PCValues.KILL_ENDER_PEARLS.get()));
             }
 
             if (this.hasLife()) {
@@ -113,7 +117,7 @@ public class PCGamePlayer extends HyriGamePlayer {
         if (this.lives == 1) {
             this.game.sendMessageToAll(HyriLanguageMessage.get("message.life-remaining"));
         } else if (this.lives != 0){
-            this.game.sendMessageToAll(target -> HyriLanguageMessage.get("message.lives-remaining").getForPlayer(target).replace("%lives%", String.valueOf(this.lives)));
+            this.game.sendMessageToAll(target -> HyriLanguageMessage.get("message.lives-remaining").getValue(target).replace("%lives%", String.valueOf(this.lives)));
         }
 
         this.statisticsData.addDeaths(1);
@@ -158,7 +162,7 @@ public class PCGamePlayer extends HyriGamePlayer {
     }
 
     public boolean hasLife() {
-        return this.lives > 0;
+        return this.lives > 0 && this.isOnline();
     }
 
     public boolean isInvincible() {
@@ -183,7 +187,11 @@ public class PCGamePlayer extends HyriGamePlayer {
 
     public void addKnockbackPercentage() {
         if (this.knockbackPercentage < 800) {
-            this.knockbackPercentage += this.game.getType() == PCGameType.CHAOS ? 9.5D : 6.5D;
+            this.knockbackPercentage += (this.game.getType() == PCGameType.CHAOS ? 9.5D : 6.5D) * PCValues.KNOCKBACK_MULTIPLIER.get();
+
+            if (this.knockbackPercentage > 800) {
+                this.knockbackPercentage = 800;
+            }
 
             this.scoreboard.update();
         }
@@ -198,18 +206,18 @@ public class PCGamePlayer extends HyriGamePlayer {
             }
 
             this.captureTask = Bukkit.getScheduler().runTaskTimerAsynchronously(this.plugin, () -> {
-                new ActionBar(ChatColor.GREEN + "Capture: " + (this.captureIndex * 10) + "%").send(this.player);
-
                 if (this.game.isCaptureAllowed()) {
+                    new ActionBar(HyriLanguageMessage.get("action-bar.capture.display")
+                            .getValue(this.player).replace("%percentage%", String.valueOf((int) ((double) this.captureIndex / PCValues.CAPTURE_TIME.get() * 100))))
+                            .send(this.player);
+
                     if  (this.captureIndex == 1) {
-                        this.game.sendMessageToAll(target -> HyriLanguageMessage.get("message.zone-enter").getForPlayer(target).replace("%player%", this.formatNameWithTeam()));
+                        this.game.sendMessageToAll(target -> HyriLanguageMessage.get("message.zone-enter").getValue(target).replace("%player%", this.formatNameWithTeam()));
                     }
 
-                    if (this.captureIndex == 10) {
-                        // Fin de la game, le joueur est resté 10 secondes
-                        this.game.sendMessageToAll(target -> HyriLanguageMessage.get("message.zone-captured").getForPlayer(target).replace("%player%", this.formatNameWithTeam()));
+                    if (this.captureIndex >= PCValues.CAPTURE_TIME.get()) {
+                        this.game.sendMessageToAll(target -> HyriLanguageMessage.get("message.zone-captured").getValue(target).replace("%player%", this.formatNameWithTeam()));
                         this.statisticsData.addCapturedAreas(1);
-
                         this.captureTask.cancel();
 
                         ThreadUtil.backOnMainThread(this.plugin, () -> this.game.win(this.team));
@@ -239,6 +247,10 @@ public class PCGamePlayer extends HyriGamePlayer {
         }
 
         this.game.setCaptureAllowed(amount <= 1);
+    }
+
+    public void removeLife() {
+        this.lives--;
     }
 
     public int getKills() {

@@ -2,25 +2,21 @@ package fr.hyriode.pearlcontrol.listener;
 
 import fr.hyriode.api.HyriAPI;
 import fr.hyriode.api.event.HyriEventHandler;
+import fr.hyriode.api.language.HyriLanguageMessage;
 import fr.hyriode.hyrame.game.HyriGameState;
 import fr.hyriode.hyrame.game.event.player.HyriGameDeathEvent;
 import fr.hyriode.hyrame.game.event.player.HyriGameSpectatorEvent;
-import fr.hyriode.hyrame.language.HyriLanguageMessage;
 import fr.hyriode.hyrame.listener.HyriListener;
-import fr.hyriode.hyrame.utils.block.BlockUtil;
 import fr.hyriode.pearlcontrol.HyriPearlControl;
 import fr.hyriode.pearlcontrol.game.PCGame;
 import fr.hyriode.pearlcontrol.game.PCGamePlayer;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.EnderPearl;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
@@ -63,6 +59,10 @@ public class PlayerListener extends HyriListener<HyriPearlControl> {
                 final Player player = (Player) shooter;
                 final PCGamePlayer gamePlayer = this.plugin.getGame().getPlayer(player);
 
+                if (gamePlayer == null) {
+                    return;
+                }
+
                 gamePlayer.addPearl((EnderPearl) entity);
             }
         }
@@ -91,6 +91,10 @@ public class PlayerListener extends HyriListener<HyriPearlControl> {
             final Player target = (Player) event.getEntity();
             final PCGamePlayer damageDealerGamePlayer = game.getPlayer(damageDealer.getUniqueId());
             final PCGamePlayer targetGamePlayer = game.getPlayer(target.getUniqueId());
+
+            if (damageDealerGamePlayer == null || targetGamePlayer == null) {
+                return;
+            }
 
             if (!damageDealerGamePlayer.isSpectator()) {
                 event.setDamage(0.0D);
@@ -126,6 +130,10 @@ public class PlayerListener extends HyriListener<HyriPearlControl> {
         if (game.getState() == HyriGameState.PLAYING) {
             final PCGamePlayer gamePlayer = game.getPlayer(player.getUniqueId());
 
+            if (gamePlayer == null) {
+                return;
+            }
+
             if (gamePlayer.isDead() || gamePlayer.isSpectator()) {
                 return;
             }
@@ -140,7 +148,7 @@ public class PlayerListener extends HyriListener<HyriPearlControl> {
 
     @HyriEventHandler
     public void onSpectator(HyriGameSpectatorEvent event) {
-        event.getGamePlayer().getPlayer().teleport(this.plugin.getConfiguration().getWorldSpawn().asBukkit().clone());
+        event.getSpectator().getPlayer().teleport(this.plugin.getConfiguration().getWorldSpawn().asBukkit().clone());
     }
 
     @HyriEventHandler

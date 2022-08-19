@@ -1,17 +1,17 @@
 package fr.hyriode.pearlcontrol.game;
 
+import fr.hyriode.api.language.HyriLanguage;
+import fr.hyriode.api.language.HyriLanguageMessage;
 import fr.hyriode.api.player.IHyriPlayer;
-import fr.hyriode.api.settings.HyriLanguage;
 import fr.hyriode.hyrame.IHyrame;
 import fr.hyriode.hyrame.game.HyriGame;
 import fr.hyriode.hyrame.game.waitingroom.HyriWaitingRoom;
-import fr.hyriode.hyrame.language.HyriLanguageMessage;
 import fr.hyriode.hyrame.utils.DurationFormatter;
 import fr.hyriode.hyrame.utils.LocationWrapper;
+import fr.hyriode.hyrame.utils.Symbols;
 import fr.hyriode.pearlcontrol.api.PCStatistics;
-import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.entity.Player;
 
 import java.util.UUID;
 import java.util.function.Function;
@@ -47,7 +47,7 @@ public class PCWaitingRoom extends HyriWaitingRoom {
     }
 
     private String formatPlayedTime(IHyriPlayer account, long playedTime) {
-        return new DurationFormatter()
+        return playedTime < 1000 ? ChatColor.RED + Symbols.CROSS_STYLIZED_BOLD : new DurationFormatter()
                 .withSeconds(false)
                 .format(account.getSettings().getLanguage(), playedTime);
     }
@@ -57,9 +57,7 @@ public class PCWaitingRoom extends HyriWaitingRoom {
     }
 
     private static Config createConfig() {
-        final UUID world = IHyrame.WORLD.get().getUID();
-
-        return new Config(new LocationWrapper(world, 0, 0, 0), new LocationWrapper(world, 30, 222, -18), new LocationWrapper(world, -22, 192, 22), new LocationWrapper(world, 5.5F, 200, -2.5F, 90, 0));
+        return new Config(new LocationWrapper(0, 200, 0, -90, 0), new LocationWrapper(30, 222, -18), new LocationWrapper(-22, 192, 22), new LocationWrapper(5.5F, 200, -2.5F, 90, 0));
     }
 
 

@@ -38,7 +38,6 @@ public class PCStatistics extends HyriPlayerData {
     }
 
     public void update(IHyriPlayer account) {
-        System.out.println(HyriAPI.GSON.toJson(this));
         account.addStatistics("pearlcontrol", this);
         account.update();
     }

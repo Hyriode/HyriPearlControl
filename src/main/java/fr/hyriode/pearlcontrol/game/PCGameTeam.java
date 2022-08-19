@@ -1,7 +1,7 @@
 package fr.hyriode.pearlcontrol.game;
 
 import fr.hyriode.hyrame.game.team.HyriGameTeamColor;
-import fr.hyriode.hyrame.language.HyriLanguageMessage;
+import fr.hyriode.api.language.HyriLanguageMessage;
 import fr.hyriode.pearlcontrol.HyriPearlControl;
 
 import java.util.function.Supplier;
@@ -31,7 +31,7 @@ public enum PCGameTeam {
     PCGameTeam(String teamName, HyriGameTeamColor teamColor) {
         this.teamName = teamName;
         this.teamColor = teamColor;
-        this.displayName = () -> HyriPearlControl.getLanguageManager().getMessage("team." + this.teamName + ".display");
+        this.displayName = () -> HyriLanguageMessage.get("team." + this.teamName + ".display");
     }
 
     public String getName() {

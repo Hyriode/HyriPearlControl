@@ -1,5 +1,6 @@
 package fr.hyriode.pearlcontrol.game.scoreboard;
 
+import fr.hyriode.api.language.HyriLanguageMessage;
 import fr.hyriode.hyrame.game.scoreboard.HyriGameScoreboard;
 import fr.hyriode.hyrame.utils.Symbols;
 import fr.hyriode.pearlcontrol.HyriPearlControl;
@@ -14,11 +15,8 @@ import org.bukkit.entity.Player;
  */
 public class PCScoreboard extends HyriGameScoreboard<PCGame> {
 
-    private final PCGame game;
-
     public PCScoreboard(HyriPearlControl plugin, PCGame game, Player player) {
         super(plugin, game, player, "pearlcontrol");
-        this.game = plugin.getGame();
 
         this.addLines();
 
@@ -54,7 +52,7 @@ public class PCScoreboard extends HyriGameScoreboard<PCGame> {
     }
 
     private String getLinePrefix(String prefix) {
-        return ChatColor.WHITE + HyriPearlControl.getLanguageManager().getValue(this.player, "scoreboard." + prefix + ".display");
+        return ChatColor.WHITE + HyriLanguageMessage.get("scoreboard." + prefix + ".display").getValue(this.player);
     }
 
 }

@@ -28,11 +28,33 @@
   "scoreboard.lives.display": "Lives: ",
   "scoreboard.percentage.display": "Repulsion: ",
 
+  "action-bar.capture.display": "&3Capture &8┃ &7In progress... &8(%percentage%%)",
+
   "waiting-room.npc.data.prefix.kills": "Kills",
   "waiting-room.npc.data.prefix.final-kills": "Final kills",
   "waiting-room.npc.data.prefix.deaths": "Deaths",
   "waiting-room.npc.data.prefix.victories": "Victories",
   "waiting-room.npc.data.prefix.games-played": "Games played",
   "waiting-room.npc.data.prefix.played-time": "Played time",
-  "waiting-room.npc.data.prefix.captured-areas": "Captured areas"
+  "waiting-room.npc.data.prefix.captured-areas": "Captured areas",
+
+  "gui.host.pc-main.name": "&8PearlControl (Settings)",
+
+  "host.category.main.name": "&bPearlControl",
+  "host.category.main.description": "&7Edit the settings linked\n&7to the game.",
+
+  "host.option.spawn-ender-pearls.name": "&bEnderPearls &8(Spawn)",
+  "host.option.spawn-ender-pearls.description": "&7Set the amount of EnderPearl\n&7to give to players at spawn.",
+  "host.option.kill-ender-pearls.name": "&bEnderPearls &8(Kill)",
+  "host.option.kill-ender-pearls.description": "&7Set the amount of EnderPearl\n&7to give when a player is\n&7killed.",
+  "host.option.allowing-capture.name": "&bCapture",
+  "host.option.allowing-capture.description": "&7Set whether the capture is\n&7allowed or not.",
+  "host.option.capture-time.name": "&bCapture time",
+  "host.option.capture-time.description": "&7Set the necessary time to\n&7capture the area.",
+  "host.option.knockback-multiplier.name": "&bRepulsion multiplier",
+  "host.option.knockback-multiplier.description": "&7Set the multiplier of players\n&7repulsion rate.",
+  "host.option.lives.name": "&bLives",
+  "host.option.lives.description": "&7Set the amount of lives of\n&7players.",
+  "host.option.respawn-time.name": "&bRespawn time",
+  "host.option.respawn-time.description": "&7Set the time of respawn\n&7for players at death."
 }
