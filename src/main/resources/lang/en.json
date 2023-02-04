@@ -29,6 +29,7 @@
   "scoreboard.percentage.display": "Repulsion: ",
 
   "action-bar.capture.display": "&3Capture &8┃ &7In progress... &8(%percentage%%)",
+  "action-bar.zone-in-capture": "%player% &3is capturing the &bmiddle area&3! &8┃ &c%seconds%",
 
   "waiting-room.npc.data.prefix.kills": "Kills",
   "waiting-room.npc.data.prefix.final-kills": "Final kills",

@@ -47,13 +47,10 @@ public class PCGamePlayer extends HyriGamePlayer {
 
     private HyriPearlControl plugin;
 
-    private final PCGame game;
-
-    public PCGamePlayer(HyriGame<?> game, Player player) {
-        super(game, player);
-        this.game = (PCGame) game;
+    public PCGamePlayer(Player player) {
+        super(player);
         this.statistics = PCStatistics.get(player.getUniqueId());
-        this.statisticsData = this.statistics.getData((PCGameType) this.game.getType());
+        this.statisticsData = this.statistics.getData((PCGameType) this.plugin.getGame().getType());
         this.pearls = new ArrayList<>();
     }
 
@@ -115,16 +112,19 @@ public class PCGamePlayer extends HyriGamePlayer {
         }
 
         if (this.lives == 1) {
-            this.game.sendMessageToAll(HyriLanguageMessage.get("message.life-remaining"));
+            this.plugin.getGame().getPlayers().forEach((player) ->
+                    player.getPlayer().sendMessage(HyriLanguageMessage.get("message.life-remaining").getValue(player.getUniqueId())));
         } else if (this.lives != 0){
-            this.game.sendMessageToAll(target -> HyriLanguageMessage.get("message.lives-remaining").getValue(target).replace("%lives%", String.valueOf(this.lives)));
+            this.plugin.getGame().getPlayers().forEach((player) ->
+                    player.getPlayer().sendMessage(HyriLanguageMessage.get("message.lives-remaining").getValue(player)
+                            .replace("%lives%", String.valueOf(this.lives))));
         }
 
         this.statisticsData.addDeaths(1);
 
         this.knockbackPercentage = 1.0D;
 
-        for (PCGamePlayer gamePlayer : this.game.getPlayers()) {
+        for (PCGamePlayer gamePlayer : this.plugin.getGame().getPlayers()) {
             gamePlayer.getScoreboard().update();
         }
 
@@ -145,7 +145,7 @@ public class PCGamePlayer extends HyriGamePlayer {
     }
 
     public HyriLastHitterProtocol.LastHitter getLastHitter() {
-        final List<HyriLastHitterProtocol.LastHitter> lastHitters = this.game.getProtocolManager().getProtocol(HyriLastHitterProtocol.class).getLastHitters(this.player);
+        final List<HyriLastHitterProtocol.LastHitter> lastHitters = this.plugin.getGame().getProtocolManager().getProtocol(HyriLastHitterProtocol.class).getLastHitters(this.player);
 
         if (lastHitters != null) {
             return lastHitters.get(0);
@@ -187,7 +187,7 @@ public class PCGamePlayer extends HyriGamePlayer {
 
     public void addKnockbackPercentage() {
         if (this.knockbackPercentage < 800) {
-            this.knockbackPercentage += (this.game.getType() == PCGameType.CHAOS ? 9.5D : 6.5D) * PCValues.KNOCKBACK_MULTIPLIER.get();
+            this.knockbackPercentage += (this.plugin.getGame().getType() == PCGameType.CHAOS ? 9.5D : 6.5D) * PCValues.KNOCKBACK_MULTIPLIER.get();
 
             if (this.knockbackPercentage > 800) {
                 this.knockbackPercentage = 800;
@@ -199,29 +199,41 @@ public class PCGamePlayer extends HyriGamePlayer {
 
     public void onEnterCapture() {
         if (this.captureTask == null) {
-            for (PCGamePlayer gamePlayer : this.game.getPlayers()) {
+            for (PCGamePlayer gamePlayer : this.plugin.getGame().getPlayers()) {
                 if (gamePlayer.isInMiddleArea() && gamePlayer != this) {
-                    this.game.setCaptureAllowed(false);
+                    this.plugin.getGame().setCaptureAllowed(false);
                 }
             }
 
             this.captureTask = Bukkit.getScheduler().runTaskTimerAsynchronously(this.plugin, () -> {
-                if (this.game.isCaptureAllowed()) {
-                    new ActionBar(HyriLanguageMessage.get("action-bar.capture.display")
-                            .getValue(this.player).replace("%percentage%", String.valueOf((int) ((double) this.captureIndex / PCValues.CAPTURE_TIME.get() * 100))))
-                            .send(this.player);
-
+                if (this.plugin.getGame().isCaptureAllowed()) {
                     if  (this.captureIndex == 1) {
-                        this.game.sendMessageToAll(target -> HyriLanguageMessage.get("message.zone-enter").getValue(target).replace("%player%", this.formatNameWithTeam()));
+                        this.plugin.getGame().getPlayers().forEach(target ->
+                                HyriLanguageMessage.get("message.zone-enter").getValue(target)
+                                        .replace("%player%", this.formatNameWithTeam()));
                     }
 
-                    if (this.captureIndex >= PCValues.CAPTURE_TIME.get()) {
-                        this.game.sendMessageToAll(target -> HyriLanguageMessage.get("message.zone-captured").getValue(target).replace("%player%", this.formatNameWithTeam()));
+                    if (this.captureIndex < PCValues.CAPTURE_TIME.get()) {
+                        this.plugin.getGame().getPlayers().forEach(target ->
+                                new ActionBar(HyriLanguageMessage.get("action-bar.zone-in-capture").getValue(target)
+                                        .replace("%player%", this.formatNameWithTeam())
+                                        .replace("%seconds%", String.valueOf(PCValues.CAPTURE_TIME.get() - this.captureIndex)))
+                                        .send(target.getPlayer()));
+
+                        new ActionBar(HyriLanguageMessage.get("action-bar.capture.display")
+                                .getValue(this.player).replace("%percentage%", String.valueOf((int) ((double) this.captureIndex / PCValues.CAPTURE_TIME.get() * 100))))
+                                .send(this.player);
+                    } else {
+                        this.plugin.getGame().getPlayers().forEach(target ->
+                                HyriLanguageMessage.get("message.zone-captured").getValue(target)
+                                        .replace("%player%", this.formatNameWithTeam()));
                         this.statisticsData.addCapturedAreas(1);
                         this.captureTask.cancel();
 
-                        ThreadUtil.backOnMainThread(this.plugin, () -> this.game.win(this.team));
+                        ThreadUtil.backOnMainThread(this.plugin, () -> this.plugin.getGame().win(this.getTeam()));
                     }
+
+
 
                     this.captureIndex++;
                 }
@@ -236,17 +248,17 @@ public class PCGamePlayer extends HyriGamePlayer {
             this.captureIndex = 0;
         }
 
-        this.game.setCaptureAllowed(true);
+        this.plugin.getGame().setCaptureAllowed(true);
 
         int amount = 0;
 
-        for (PCGamePlayer gamePlayer : this.game.getPlayers()) {
+        for (PCGamePlayer gamePlayer : this.plugin.getGame().getPlayers()) {
             if (gamePlayer.isInMiddleArea()) {
                 amount++;
             }
         }
 
-        this.game.setCaptureAllowed(amount <= 1);
+        this.plugin.getGame().setCaptureAllowed(amount <= 1);
     }
 
     public void removeLife() {
