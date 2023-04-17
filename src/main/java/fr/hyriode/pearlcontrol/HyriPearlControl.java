@@ -2,6 +2,7 @@ package fr.hyriode.pearlcontrol;
 
 import fr.hyriode.api.HyriAPI;
 import fr.hyriode.api.server.IHyriServer;
+import fr.hyriode.hyggdrasil.api.server.HyggServer;
 import fr.hyriode.hyrame.HyrameLoader;
 import fr.hyriode.hyrame.IHyrame;
 import fr.hyriode.pearlcontrol.config.PCConfig;
@@ -60,12 +61,12 @@ public class HyriPearlControl extends JavaPlugin {
         this.game = new PCGame(this.hyrame, this);
         this.hyrame.getGameManager().registerGame(() -> this.game);
 
-        if (HyriAPI.get().getServer().isHost()) {
+        if (HyriAPI.get().getServer().getAccessibility().equals(HyggServer.Accessibility.HOST)) {
             this.hostManager = new PCHostManager();
             this.hostManager.attach();
         }
 
-        HyriAPI.get().getServer().setState(IHyriServer.State.READY);
+        HyriAPI.get().getServer().setState(HyggServer.State.READY);
     }
 
     @Override

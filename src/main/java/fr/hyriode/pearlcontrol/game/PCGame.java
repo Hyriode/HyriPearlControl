@@ -1,12 +1,15 @@
 package fr.hyriode.pearlcontrol.game;
 
 import fr.hyriode.api.HyriAPI;
+import fr.hyriode.api.event.HyriEventHandler;
 import fr.hyriode.api.language.HyriLanguageMessage;
 import fr.hyriode.api.player.IHyriPlayer;
+import fr.hyriode.hyggdrasil.api.server.HyggServer;
 import fr.hyriode.hyrame.IHyrame;
 import fr.hyriode.hyrame.game.HyriGame;
 import fr.hyriode.hyrame.game.HyriGameState;
 import fr.hyriode.hyrame.game.HyriGameType;
+import fr.hyriode.hyrame.game.event.player.HyriGameReconnectedEvent;
 import fr.hyriode.hyrame.game.protocol.HyriDeathProtocol;
 import fr.hyriode.hyrame.game.protocol.HyriLastHitterProtocol;
 import fr.hyriode.hyrame.game.protocol.HyriWaitingProtocol;
@@ -56,7 +59,7 @@ public class PCGame extends HyriGame<PCGamePlayer> {
 
     private void registerTeams() {
         for (PCGameTeam team : PCGameTeam.values()) {
-            this.registerTeam(new HyriGameTeam(this, team.getName(), team.getDisplayName(), team.getColor(), 1));
+            this.registerTeam(new HyriGameTeam(team.getName(), team.getDisplayName(), team.getColor(), 1));
         }
     }
 
@@ -77,11 +80,9 @@ public class PCGame extends HyriGame<PCGamePlayer> {
         gamePlayer.setPlugin(this.plugin);
     }
 
-    @Override
-    public void handleReconnection(Player player) {
-        super.handleReconnection(player);
-
-        final PCGamePlayer gamePlayer = this.getPlayer(player.getUniqueId());
+    @HyriEventHandler
+    public void handleReconnection(HyriGameReconnectedEvent event) {
+        final PCGamePlayer gamePlayer = (PCGamePlayer) event.getGamePlayer();
 
         if (!gamePlayer.isSpectator()) {
             gamePlayer.removeLife();
@@ -99,12 +100,12 @@ public class PCGame extends HyriGame<PCGamePlayer> {
         player.onLeave();
 
         if (!this.getState().isAccessible()) {
-            statisticsData.setPlayedTime(statisticsData.getPlayedTime() + player.getPlayedTime());
+            statisticsData.setPlayedTime(statisticsData.getPlayedTime() + player.getPlayTime());
         }
 
         this.hyrame.getScoreboardManager().getScoreboards(PCScoreboard.class).forEach(PCScoreboard::update);
 
-        if (!HyriAPI.get().getServer().isHost()) {
+        if (!HyriAPI.get().getServer().getAccessibility().equals(HyggServer.Accessibility.HOST)) {
             statistics.update(p.getUniqueId());
         }
 
@@ -187,14 +188,14 @@ public class PCGame extends HyriGame<PCGamePlayer> {
 
                 final IHyriPlayer account = HyriAPI.get().getPlayerManager().getPlayer(endPlayer.getUniqueId());
 
-                killsLines.add(line.replace("%player%", account.getNameWithRank(true)).replace("%kills%", String.valueOf(endPlayer.getKills())));
+                killsLines.add(line.replace("%player%", account.getNameWithRank()).replace("%kills%", String.valueOf(endPlayer.getKills())));
             }
 
             final IHyriPlayer account = gamePlayer.asHyriPlayer();
             final int kills = gamePlayer.getKills();
             final boolean isWinner = winner.contains(gamePlayer);
-            final long earnedHyris = HyriRewardAlgorithm.getHyris(kills, gamePlayer.getPlayedTime(), isWinner);
-            final long earnedXP = HyriRewardAlgorithm.getXP(kills, gamePlayer.getPlayedTime(), isWinner);
+            final long earnedHyris = HyriRewardAlgorithm.getHyris(kills, gamePlayer.getPlayTime(), isWinner);
+            final double earnedXP = HyriRewardAlgorithm.getXP(kills, gamePlayer.getPlayTime(), isWinner);
             final List<String> rewards = new ArrayList<>();
 
             rewards.add(ChatColor.LIGHT_PURPLE + String.valueOf(account.getHyris().add(earnedHyris).withMessage(false).exec()) + " Hyris");

@@ -9,7 +9,7 @@ import fr.hyriode.hyrame.game.util.value.ValueProvider;
  */
 public class PCValues {
 
-    public static final ValueProvider<Integer> SPAWN_ENDER_PEARLS = new ValueProvider<>(16).addModifiers(new HostValueModifier<>(1, Integer.class, "spawn-ender-pearls"));
+    public static final ValueProvider<Integer> SPAWN_ENDER_PEARLS = new ValueProvider<>(8).addModifiers(new HostValueModifier<>(1, Integer.class, "spawn-ender-pearls"));
     public static final ValueProvider<Integer> KILL_ENDER_PEARLS = new ValueProvider<>(4).addModifiers(new HostValueModifier<>(1, Integer.class, "kill-ender-pearls"));
     public static final ValueProvider<Boolean> ALLOWING_CAPTURE = new ValueProvider<>(true).addModifiers(new HostValueModifier<>(1, Boolean.class, "allowing-capture"));
     public static final ValueProvider<Integer> CAPTURE_TIME = new ValueProvider<>(10).addModifiers(new HostValueModifier<>(1, Integer.class, "capture-time"));
