@@ -86,7 +86,6 @@ public class PCGamePlayer extends HyriGamePlayer {
     }
 
     public boolean kill() {
-        final PCGame game = this.plugin.getGame();
         final HyriLastHitterProtocol.LastHitter lastHitter = this.getLastHitter();
 
         for (EnderPearl pearl : this.pearls) {
@@ -183,11 +182,11 @@ public class PCGamePlayer extends HyriGamePlayer {
     }
 
     public void addKnockbackPercentage() {
-        if (this.knockbackPercentage < 800) {
+        if (this.knockbackPercentage < 300) {
             this.knockbackPercentage += (this.plugin.getGame().getType() == PCGameType.CHAOS ? 9.5D : 6.5D) * PCValues.KNOCKBACK_MULTIPLIER.get();
 
-            if (this.knockbackPercentage > 800) {
-                this.knockbackPercentage = 800;
+            if (this.knockbackPercentage > 300) {
+                this.knockbackPercentage = 300;
             }
 
             this.scoreboard.update();
@@ -199,6 +198,8 @@ public class PCGamePlayer extends HyriGamePlayer {
             for (PCGamePlayer gamePlayer : this.plugin.getGame().getPlayers()) {
                 if (gamePlayer.isInMiddleArea() && gamePlayer != this) {
                     this.plugin.getGame().setCaptureAllowed(false);
+
+                    gamePlayer.onLeaveCapture();
                 }
             }
 
@@ -209,11 +210,16 @@ public class PCGamePlayer extends HyriGamePlayer {
                     }
 
                     if (this.captureIndex < PCValues.CAPTURE_TIME.get()) {
-                        this.plugin.getGame().getPlayers().forEach(target ->
-                                new ActionBar(HyriLanguageMessage.get("action-bar.zone-in-capture").getValue(target)
-                                        .replace("%player%", this.formatNameWithTeam())
-                                        .replace("%seconds%", String.valueOf(PCValues.CAPTURE_TIME.get() - this.captureIndex)))
-                                        .send(target.getPlayer()));
+                        this.plugin.getGame().getPlayers().forEach(target -> {
+                            if (target == this) {
+                                return;
+                            }
+
+                            new ActionBar(HyriLanguageMessage.get("action-bar.zone-in-capture").getValue(target)
+                                    .replace("%player%", this.formatNameWithTeam())
+                                    .replace("%percentage%", String.valueOf((int) ((double) this.captureIndex / PCValues.CAPTURE_TIME.get() * 100))))
+                                    .send(target.getPlayer());
+                        });
 
                         new ActionBar(HyriLanguageMessage.get("action-bar.capture.display")
                                 .getValue(this.player).replace("%percentage%", String.valueOf((int) ((double) this.captureIndex / PCValues.CAPTURE_TIME.get() * 100))))
@@ -241,8 +247,6 @@ public class PCGamePlayer extends HyriGamePlayer {
             this.captureIndex = 0;
         }
 
-        this.plugin.getGame().setCaptureAllowed(true);
-
         int amount = 0;
 
         for (PCGamePlayer gamePlayer : this.plugin.getGame().getPlayers()) {
@@ -252,10 +256,6 @@ public class PCGamePlayer extends HyriGamePlayer {
         }
 
         this.plugin.getGame().setCaptureAllowed(amount <= 1);
-    }
-
-    public void removeLife() {
-        this.lives--;
     }
 
     public int getKills() {

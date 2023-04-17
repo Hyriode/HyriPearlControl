@@ -16,8 +16,8 @@
   "message.game.end.nobody": "&7Nobody",
   "message.game.end.kills": "%position% %player% - &b%kills%",
 
-  "message.lives-remaining": "&7He has &3%lives% &7lives remaining.",
-  "message.life-remaining": "&7He has &31 &7life remaining.",
+  "message.lives-remaining": "&7He has &b%lives% &7lives remaining.",
+  "message.life-remaining": "&7He has &b1 &7life remaining.",
   "message.eliminated": "&cEliminated!",
 
   "message.zone-enter": "%player% &7started to capture the &bmiddle area&7!",
@@ -28,8 +28,8 @@
   "scoreboard.lives.display": "Lives: ",
   "scoreboard.percentage.display": "Repulsion: ",
 
-  "action-bar.capture.display": "&3Capture &8┃ &7In progress... &8(%percentage%%)",
-  "action-bar.zone-in-capture": "%player% &3is capturing the &bmiddle area&3! &8┃ &c%seconds%",
+  "action-bar.capture.display": "&3Capture &f┃ &7In progress... &8(%percentage%%)",
+  "action-bar.zone-in-capture": "&3Capture &f┃ %player% &7is capturing the &bmiddle area&7! &8(%percentage%%)",
 
   "waiting-room.npc.kills": "Kills",
   "waiting-room.npc.final-kills": "Final kills",
@@ -42,7 +42,7 @@
   "leaderboard.experience.display": "&3Experience &8┃ &7Leaderboard",
   "leaderboard.kills.display": "&3Kills &8┃ &7Leaderboard",
   "leaderboard.victories.display": "&3Victories &8┃ &7Leaderboard",
-  "leaderboard.successful-jumps.display": "&3Captured areas &8┃ &7Leaderboard",
+  "leaderboard.captured-areas.display": "&3Captured areas &8┃ &7Leaderboard",
 
   "gui.host.pc-main.name": "&8PearlControl (Settings)",
 
