@@ -52,7 +52,7 @@ public class PCGamePlayer extends HyriGamePlayer {
     public PCGamePlayer(Player player) {
         super(player);
         this.statistics = PCStatistics.get(player.getUniqueId());
-        this.statisticsData = this.statistics.getData((PCGameType) this.plugin.getGame().getType());
+        this.statisticsData = this.statistics.getData((PCGameType) HyriPearlControl.get().getGame().getType());
         this.pearls = new ArrayList<>();
     }
 
