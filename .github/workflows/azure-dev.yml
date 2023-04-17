@@ -20,8 +20,8 @@ jobs:
       - name: Build  Jar
         run: gradle build
         env:
-          USERNAME: ${{ github.actor }}
-          TOKEN: ${{ secrets.TOKEN }}
+          GITHUB_USERNAME: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
 
       - name: Rename Jar
         run: mv build/libs/HyriPearlControl-*.jar build/libs/HyriPearlControl.jar
