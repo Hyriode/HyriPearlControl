@@ -6,6 +6,7 @@ import fr.hyriode.hyrame.game.HyriGamePlayer;
 import fr.hyriode.hyrame.game.protocol.HyriLastHitterProtocol;
 import fr.hyriode.hyrame.item.ItemBuilder;
 import fr.hyriode.api.language.HyriLanguageMessage;
+import fr.hyriode.hyrame.utils.BroadcastUtil;
 import fr.hyriode.hyrame.utils.ThreadUtil;
 import fr.hyriode.hyrame.utils.VoidPlayer;
 import fr.hyriode.pearlcontrol.HyriPearlControl;
@@ -44,6 +45,7 @@ public class PCGamePlayer extends HyriGamePlayer {
 
     private int lives;
     private int kills;
+    private boolean capturedArea;
 
     private HyriPearlControl plugin;
 
@@ -66,7 +68,7 @@ public class PCGamePlayer extends HyriGamePlayer {
     }
 
     public void spawn() {
-        if (this.player instanceof VoidPlayer) {
+        if (!this.isOnline()) {
             return;
         }
 
@@ -128,12 +130,7 @@ public class PCGamePlayer extends HyriGamePlayer {
             gamePlayer.getScoreboard().update();
         }
 
-        if (this.hasLife()) {
-            return true;
-        }
-
-        game.win(game.getWinner());
-        return false;
+        return this.hasLife();
     }
 
     public void onLeave() {
@@ -208,9 +205,7 @@ public class PCGamePlayer extends HyriGamePlayer {
             this.captureTask = Bukkit.getScheduler().runTaskTimerAsynchronously(this.plugin, () -> {
                 if (this.plugin.getGame().isCaptureAllowed()) {
                     if  (this.captureIndex == 1) {
-                        this.plugin.getGame().getPlayers().forEach(target ->
-                                HyriLanguageMessage.get("message.zone-enter").getValue(target)
-                                        .replace("%player%", this.formatNameWithTeam()));
+                        BroadcastUtil.broadcast(player -> HyriLanguageMessage.get("message.zone-enter").getValue(player).replace("%player%", this.formatNameWithTeam()));
                     }
 
                     if (this.captureIndex < PCValues.CAPTURE_TIME.get()) {
@@ -224,16 +219,14 @@ public class PCGamePlayer extends HyriGamePlayer {
                                 .getValue(this.player).replace("%percentage%", String.valueOf((int) ((double) this.captureIndex / PCValues.CAPTURE_TIME.get() * 100))))
                                 .send(this.player);
                     } else {
-                        this.plugin.getGame().getPlayers().forEach(target ->
-                                HyriLanguageMessage.get("message.zone-captured").getValue(target)
-                                        .replace("%player%", this.formatNameWithTeam()));
+                        BroadcastUtil.broadcast(player -> HyriLanguageMessage.get("message.zone-captured").getValue(player).replace("%player%", this.formatNameWithTeam()));
+
+                        this.capturedArea = true;
                         this.statisticsData.addCapturedAreas(1);
                         this.captureTask.cancel();
 
                         ThreadUtil.backOnMainThread(this.plugin, () -> this.plugin.getGame().win(this.getTeam()));
                     }
-
-
 
                     this.captureIndex++;
                 }
@@ -267,6 +260,10 @@ public class PCGamePlayer extends HyriGamePlayer {
 
     public int getKills() {
         return this.kills;
+    }
+
+    public boolean hasCapturedArea() {
+        return this.capturedArea;
     }
 
     public boolean isInMiddleArea() {

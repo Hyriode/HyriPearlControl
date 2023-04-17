@@ -3,6 +3,8 @@ package fr.hyriode.pearlcontrol.listener;
 import fr.hyriode.api.HyriAPI;
 import fr.hyriode.api.event.HyriEventHandler;
 import fr.hyriode.api.language.HyriLanguageMessage;
+import fr.hyriode.hyrame.game.HyriGamePlayer;
+import fr.hyriode.hyrame.game.HyriGameSpectator;
 import fr.hyriode.hyrame.game.HyriGameState;
 import fr.hyriode.hyrame.game.event.player.HyriGameDeathEvent;
 import fr.hyriode.hyrame.game.event.player.HyriGameSpectatorEvent;
@@ -73,6 +75,7 @@ public class PlayerListener extends HyriListener<HyriPearlControl> {
         if (event.getCause() == EntityDamageEvent.DamageCause.FALL) {
             event.setCancelled(true);
         }
+
         if (event.getEntity() instanceof Player) {
             event.setDamage(0.0D);
         }
@@ -119,13 +122,6 @@ public class PlayerListener extends HyriListener<HyriPearlControl> {
     public void onMove(PlayerMoveEvent event) {
         final PCGame game = this.plugin.getGame();
         final Player player = event.getPlayer();
-        final Location location = event.getTo();
-
-        if (game.getState().isAccessible()) {
-            if (this.plugin.getConfiguration().getSpawnArea().asArea().getMin().getY() >= location.getY()) {
-                player.teleport(this.plugin.getConfiguration().getWorldSpawn().asBukkit().clone());
-            }
-        }
 
         if (game.getState() == HyriGameState.PLAYING) {
             final PCGamePlayer gamePlayer = game.getPlayer(player.getUniqueId());
@@ -148,7 +144,14 @@ public class PlayerListener extends HyriListener<HyriPearlControl> {
 
     @HyriEventHandler
     public void onSpectator(HyriGameSpectatorEvent event) {
-        event.getSpectator().getPlayer().teleport(this.plugin.getConfiguration().getWorldSpawn().asBukkit().clone());
+        final PCGame game = event.getGame().cast();
+        final HyriGameSpectator spectator = event.getSpectator();
+
+        if (!(spectator instanceof HyriGamePlayer)) {
+            event.getSpectator().getPlayer().teleport(this.plugin.getGame().getWaitingRoom().getConfig().getSpawn().asBukkit());
+        } else {
+            game.win(game.getWinner());
+        }
     }
 
     @HyriEventHandler

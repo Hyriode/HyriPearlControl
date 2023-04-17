@@ -8,13 +8,13 @@
   "team.white.display": "&fBlanc",
   "team.gray.display": "&8Gris",
 
-  "message.game.description": "&fContrôlez la zone ou poussez tous vos adversaires\n&fdans le vide pour remporter la partie. Utilisez\n&fvos perles pour vous rattraper et survivre.",
+  "message.game.description": "&fContrôlez la zone ou poussez tous vos adversaires dans le vide pour remporter la partie. Utilisez vos perles pour vous rattraper et survivre.",
 
-  "message.game.end.1": "&e1er Tueur",
-  "message.game.end.2": "&f2ème Tueur",
-  "message.game.end.3": "&63ème Tueur",
+  "message.game.end.1": "&e1er",
+  "message.game.end.2": "&f2ème",
+  "message.game.end.3": "&63ème",
   "message.game.end.nobody": "&7Personne",
-  "message.game.end.kills": "%position% &7- %player% &7- %kills%",
+  "message.game.end.kills": "%position% %player% - &b%kills%",
 
   "message.lives-remaining": "&7Il lui reste &3%lives% &7vies",
   "message.life-remaining": "&7Il lui reste &31 &7vie",
@@ -31,13 +31,18 @@
   "action-bar.capture.display": "&3Capture &8┃ &7En cours... &8(%percentage%%)",
   "action-bar.zone-in-capture": "%player% &3est en train de capturer le milieu&3! &8┃ &c%seconds%",
 
-  "waiting-room.npc.data.prefix.kills": "Kills",
-  "waiting-room.npc.data.prefix.final-kills": "Final kills",
-  "waiting-room.npc.data.prefix.deaths": "Morts",
-  "waiting-room.npc.data.prefix.victories": "Victoires",
-  "waiting-room.npc.data.prefix.games-played": "Parties jouées",
-  "waiting-room.npc.data.prefix.played-time": "Temps de jeu",
-  "waiting-room.npc.data.prefix.captured-areas": "Zones capturées",
+  "waiting-room.npc.kills": "Kills",
+  "waiting-room.npc.final-kills": "Final kills",
+  "waiting-room.npc.deaths": "Morts",
+  "waiting-room.npc.victories": "Victoires",
+  "waiting-room.npc.games-played": "Parties jouées",
+  "waiting-room.npc.played-time": "Temps de jeu",
+  "waiting-room.npc.captured-areas": "Zones capturées",
+
+  "leaderboard.experience.display": "&3Expérience &8┃ &7Classement",
+  "leaderboard.kills.display": "&3Kills &8┃ &7Classement",
+  "leaderboard.victories.display": "&3Victoires &8┃ &7Classement",
+  "leaderboard.successful-jumps.display": "&3Zones capturées &8┃ &7Classement",
 
   "gui.host.pc-main.name": "&8PearlControl (Paramètres)",
 

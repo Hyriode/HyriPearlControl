@@ -1,74 +1,46 @@
 package fr.hyriode.pearlcontrol.config;
 
-import fr.hyriode.hyrame.utils.Area;
+import fr.hyriode.api.config.IHyriConfig;
+import fr.hyriode.hyrame.game.waitingroom.HyriWaitingRoom;
+import fr.hyriode.hyrame.utils.AreaWrapper;
 import fr.hyriode.hyrame.utils.LocationWrapper;
-import fr.hyriode.hystia.api.config.IConfig;
 
 /**
  * Project: HyriPearlControl
  * Created by AstFaster
  * on 22/04/2022 at 16:19
  */
-public class PCConfig implements IConfig {
+public class PCConfig implements IHyriConfig {
+
+    private final HyriWaitingRoom.Config waitingRoom;
 
     private final LocationWrapper spawn;
-    private final GameArea spawnArea;
-    private final LocationWrapper worldSpawn;
-    private final GameArea gameArea;
+    private final AreaWrapper gameArea;
 
     /** The area where the player can win the game in the middle of the map */
-    private final GameArea middleArea;
+    private final AreaWrapper middleArea;
 
-    public PCConfig(LocationWrapper spawn, GameArea spawnArea, LocationWrapper worldSpawn, GameArea gameArea, GameArea middleArea) {
+    public PCConfig(HyriWaitingRoom.Config waitingRoom, LocationWrapper spawn, AreaWrapper gameArea, AreaWrapper middleArea) {
+        this.waitingRoom = waitingRoom;
         this.spawn = spawn;
-        this.spawnArea = spawnArea;
-        this.worldSpawn = worldSpawn;
         this.gameArea = gameArea;
         this.middleArea = middleArea;
+    }
+
+    public HyriWaitingRoom.Config getWaitingRoom() {
+        return this.waitingRoom;
     }
 
     public LocationWrapper getSpawn() {
         return this.spawn;
     }
 
-    public GameArea getSpawnArea() {
-        return this.spawnArea;
-    }
-
-    public LocationWrapper getWorldSpawn() {
-        return this.worldSpawn;
-    }
-
-    public GameArea getGameArea() {
+    public AreaWrapper getGameArea() {
         return this.gameArea;
     }
 
-    public GameArea getMiddleArea() {
+    public AreaWrapper getMiddleArea() {
         return this.middleArea;
-    }
-
-    public static class GameArea {
-
-        private final LocationWrapper areaFirst;
-        private final LocationWrapper areaSecond;
-
-        public GameArea(LocationWrapper areaFirst, LocationWrapper areaSecond) {
-            this.areaFirst = areaFirst;
-            this.areaSecond = areaSecond;
-        }
-
-        public LocationWrapper getAreaFirst() {
-            return this.areaFirst;
-        }
-
-        public LocationWrapper getAreaSecond() {
-            return this.areaSecond;
-        }
-
-        public Area asArea() {
-            return new Area(this.areaFirst.asBukkit(), this.areaSecond.asBukkit());
-        }
-
     }
 
 }
