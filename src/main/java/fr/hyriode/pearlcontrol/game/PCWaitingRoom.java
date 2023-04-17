@@ -60,5 +60,4 @@ public class PCWaitingRoom extends HyriWaitingRoom {
         return new Config(new LocationWrapper(0, 200, 0, -90, 0), new LocationWrapper(30, 222, -18), new LocationWrapper(-22, 192, 22), new LocationWrapper(5.5F, 200, -2.5F, 90, 0));
     }
 
-
 }
