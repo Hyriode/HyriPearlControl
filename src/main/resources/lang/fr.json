@@ -23,7 +23,7 @@
   "message.zone-enter": "%player% &7a commencé à capturer la &bzone centrale&7!",
   "message.zone-captured": "%player% &7a capturé la &bzone centrale&f. &6VICTOIRE!",
 
-  "scoreboard.time.display": "Durée: ",
+  "scoreboard.time.display": "Temps: ",
   "scoreboard.players.display": "Joueurs: ",
   "scoreboard.lives.display": "Vies: ",
   "scoreboard.percentage.display": "Répulsion: ",

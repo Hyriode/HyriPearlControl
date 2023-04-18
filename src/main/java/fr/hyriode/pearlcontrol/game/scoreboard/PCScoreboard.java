@@ -18,8 +18,8 @@ public class PCScoreboard extends HyriGameScoreboard<PCGame> {
 
     private final PCGamePlayer gamePlayer;
 
-    public PCScoreboard(HyriPearlControl plugin, PCGame game, Player player) {
-        super(plugin, game, player, "pearlcontrol");
+    public PCScoreboard(Player player) {
+        super(HyriPearlControl.get(), HyriPearlControl.get().getGame(), player, "pearlcontrol");
         this.gamePlayer = this.game.getPlayer(player);
 
         this.addLines();
@@ -62,7 +62,7 @@ public class PCScoreboard extends HyriGameScoreboard<PCGame> {
     }
 
     private String getPercentageLine() {
-        return this.getLinePrefix("percentage") + ChatColor.AQUA + (int) this.gamePlayer.getKnockbackPercentage() + "%";
+        return this.getLinePrefix("percentage") + ChatColor.AQUA + String.format(String.valueOf(this.gamePlayer.getKnockbackPercentage()), "%.2f") + "%";
     }
 
     private String getLinePrefix(String prefix) {

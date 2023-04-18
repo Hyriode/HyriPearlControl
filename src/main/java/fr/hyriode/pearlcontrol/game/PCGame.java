@@ -9,6 +9,7 @@ import fr.hyriode.api.player.IHyriPlayer;
 import fr.hyriode.hyggdrasil.api.server.HyggServer;
 import fr.hyriode.hyrame.IHyrame;
 import fr.hyriode.hyrame.game.HyriGame;
+import fr.hyriode.hyrame.game.HyriGamePlayer;
 import fr.hyriode.hyrame.game.HyriGameState;
 import fr.hyriode.hyrame.game.HyriGameType;
 import fr.hyriode.hyrame.game.event.player.HyriGameReconnectedEvent;
@@ -29,6 +30,8 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import xyz.xenondevs.particle.ParticleBuilder;
+import xyz.xenondevs.particle.ParticleEffect;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -137,7 +140,6 @@ public class PCGame extends HyriGame<PCGamePlayer> {
             }
 
             gamePlayer.spawn();
-            gamePlayer.setInvincibleTask(Bukkit.getScheduler().runTaskLaterAsynchronously(this.plugin, () -> gamePlayer.setInvincible(false), 4));
         });
     }
 
@@ -148,6 +150,12 @@ public class PCGame extends HyriGame<PCGamePlayer> {
         }
 
         super.win(winner);
+
+        for (HyriGamePlayer player : winner.getPlayers()) {
+            final PCGamePlayer gamePlayer = player.cast();
+
+            gamePlayer.getStatisticsData().addVictories(1);
+        }
 
         this.sendWinMessage(winner);
     }
