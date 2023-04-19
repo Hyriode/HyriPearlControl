@@ -149,6 +149,8 @@ public class PCGame extends HyriGame<PCGamePlayer> {
             return;
         }
 
+        this.setCaptureAllowed(false);
+
         super.win(winner);
 
         for (HyriGamePlayer player : winner.getPlayers()) {

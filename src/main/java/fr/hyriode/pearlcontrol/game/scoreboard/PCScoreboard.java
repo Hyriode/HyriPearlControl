@@ -62,7 +62,7 @@ public class PCScoreboard extends HyriGameScoreboard<PCGame> {
     }
 
     private String getPercentageLine() {
-        return this.getLinePrefix("percentage") + ChatColor.AQUA + String.format(String.valueOf(this.gamePlayer.getKnockbackPercentage()), "%.2f") + "%";
+        return this.getLinePrefix("percentage") + ChatColor.AQUA + String.format("%.2f", this.gamePlayer.getKnockbackPercentage()) + "%";
     }
 
     private String getLinePrefix(String prefix) {
