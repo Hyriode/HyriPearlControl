@@ -14,7 +14,7 @@
   "message.game.end.2": "&f2ème",
   "message.game.end.3": "&63ème",
   "message.game.end.nobody": "&7Personne",
-  "message.game.end.kills": "%position% %player% - &b%kills%",
+  "message.game.end.kills": "%position% %player% &7- &b%kills%",
 
   "message.lives-remaining": "&7Il lui reste &b%lives% &7vies",
   "message.life-remaining": "&7Il lui reste &b1 &7vie",
