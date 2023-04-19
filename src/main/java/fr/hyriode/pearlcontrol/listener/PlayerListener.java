@@ -85,14 +85,10 @@ public class PlayerListener extends HyriListener<HyriPearlControl> {
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGH)
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onDamageByEntity(EntityDamageByEntityEvent event) {
         if (this.plugin.getGame().getState() != HyriGameState.PLAYING) {
             event.setCancelled(true);
-            return;
-        }
-
-        if (event.isCancelled()) {
             return;
         }
 
@@ -121,15 +117,9 @@ public class PlayerListener extends HyriListener<HyriPearlControl> {
                     vector.setY(4.0D);
                 }
 
-                Bukkit.broadcastMessage(target.getName() + " - Knockback: " + targetGamePlayer.getKnockbackPercentage() + "% ; Multiplier: " + multiplier);
-
                 target.setVelocity(vector);
 
                 event.setDamage(0.0D);
-
-//                targetGamePlayer.addKnockbackPercentage();
-//
-//                target.setVelocity(damageDealer.getLocation().getDirection().normalize().multiply(targetGamePlayer.getKnockbackPercentage() / 100));
             } else {
                 event.setCancelled(true);
             }

@@ -1,10 +1,10 @@
 package fr.hyriode.pearlcontrol.game;
 
+import fr.hyriode.api.language.HyriLanguageMessage;
 import fr.hyriode.hyrame.actionbar.ActionBar;
 import fr.hyriode.hyrame.game.HyriGamePlayer;
 import fr.hyriode.hyrame.game.protocol.HyriLastHitterProtocol;
 import fr.hyriode.hyrame.item.ItemBuilder;
-import fr.hyriode.api.language.HyriLanguageMessage;
 import fr.hyriode.hyrame.utils.BroadcastUtil;
 import fr.hyriode.hyrame.utils.ThreadUtil;
 import fr.hyriode.pearlcontrol.HyriPearlControl;
@@ -15,15 +15,11 @@ import org.bukkit.*;
 import org.bukkit.entity.EnderPearl;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
-import xyz.xenondevs.particle.ParticleBuilder;
 import xyz.xenondevs.particle.ParticleEffect;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static java.lang.Math.PI;
 
 /**
  * Project: HyriPearlControl
@@ -200,6 +196,8 @@ public class PCGamePlayer extends HyriGamePlayer {
                             }
 
                             this.plugin.getGame().getPlayers().forEach(target -> {
+                                target.getPlayer().playSound(target.getPlayer().getLocation(), Sound.NOTE_PLING, 0.5f, 2.0f);
+
                                 if (target == this) {
                                     return;
                                 }
