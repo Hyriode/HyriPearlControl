@@ -124,6 +124,7 @@ public class PCGame extends HyriGame<PCGamePlayer> {
 
         super.start();
 
+
         this.initialCaptureAllowing = PCValues.ALLOWING_CAPTURE.get();
 
         for (PCGamePlayer gamePlayer : this.players) {

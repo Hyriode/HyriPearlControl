@@ -110,8 +110,7 @@ public class PlayerListener extends HyriListener<HyriPearlControl> {
                 final Vector vector = target.getLocation().toVector()
                         .subtract(damager.getLocation().toVector())
                         .normalize()
-                        .add(new Vector(0, 0.7, 0))
-                        .multiply(multiplier);
+                        .multiply(new Vector(multiplier, multiplier * 2, multiplier));
 
                 if (vector.getY() > 4.0D) {
                     vector.setY(4.0D);
@@ -120,8 +119,6 @@ public class PlayerListener extends HyriListener<HyriPearlControl> {
                 target.setVelocity(vector);
 
                 event.setDamage(0.0D);
-            } else {
-                event.setCancelled(true);
             }
         }
     }

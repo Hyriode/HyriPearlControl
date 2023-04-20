@@ -3,6 +3,7 @@ package fr.hyriode.pearlcontrol.game;
 import fr.hyriode.api.language.HyriLanguageMessage;
 import fr.hyriode.hyrame.actionbar.ActionBar;
 import fr.hyriode.hyrame.game.HyriGamePlayer;
+import fr.hyriode.hyrame.game.protocol.HyriAntiSpawnKillProtocol;
 import fr.hyriode.hyrame.game.protocol.HyriLastHitterProtocol;
 import fr.hyriode.hyrame.item.ItemBuilder;
 import fr.hyriode.hyrame.utils.BroadcastUtil;
@@ -56,6 +57,8 @@ public class PCGamePlayer extends HyriGamePlayer {
     }
 
     void startGame() {
+        HyriPearlControl.get().getGame().getProtocolManager().getProtocol(HyriAntiSpawnKillProtocol.class).manualAntiSpawnKill(this.player);
+
         this.lives = PCValues.LIVES.get();
         this.spawn();
         this.showScoreboard();
@@ -190,7 +193,7 @@ public class PCGamePlayer extends HyriGamePlayer {
                     }
 
                     if (this.captureIndex > 0) {
-                        if (this.captureIndex < PCValues.CAPTURE_TIME.get()) {
+                        if (this.captureIndex + 1 < PCValues.CAPTURE_TIME.get()) {
                             if (this.captureIndex % 2 == 0) {
                                 ParticleUtil.animHelicoid(player.getLocation(), 1.5D, ParticleEffect.VILLAGER_HAPPY, 2, 1.0f);
                             }

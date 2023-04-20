@@ -9,7 +9,7 @@ import fr.hyriode.hyrame.game.HyriGameType;
  */
 public enum PCGameType implements HyriGameType {
 
-    NORMAL("Normal", 3, 6),
+    NORMAL("Normal", 3, 8),
     CHAOS("Chaos", 6, 12)
     ;
 
