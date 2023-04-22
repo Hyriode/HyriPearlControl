@@ -193,7 +193,7 @@ public class PCGamePlayer extends HyriGamePlayer {
                     }
 
                     if (this.captureIndex > 0) {
-                        if (this.captureIndex + 1 < PCValues.CAPTURE_TIME.get()) {
+                        if (this.captureIndex < PCValues.CAPTURE_TIME.get()) {
                             if (this.captureIndex % 2 == 0) {
                                 ParticleUtil.animHelicoid(player.getLocation(), 1.5D, ParticleEffect.VILLAGER_HAPPY, 2, 1.0f);
                             }
@@ -207,12 +207,12 @@ public class PCGamePlayer extends HyriGamePlayer {
 
                                 new ActionBar(HyriLanguageMessage.get("action-bar.zone-in-capture").getValue(target)
                                         .replace("%player%", this.formatNameWithTeam())
-                                        .replace("%percentage%", String.valueOf((int) ((double) (this.captureIndex - 1) / PCValues.CAPTURE_TIME.get() * 100))))
+                                        .replace("%percentage%", String.valueOf((int) ((double) this.captureIndex / PCValues.CAPTURE_TIME.get() * 100))))
                                         .send(target.getPlayer());
                             });
 
                             new ActionBar(HyriLanguageMessage.get("action-bar.capture.display")
-                                    .getValue(this.player).replace("%percentage%", String.valueOf((int) ((double) (this.captureIndex - 1) / PCValues.CAPTURE_TIME.get() * 100))))
+                                    .getValue(this.player).replace("%percentage%", String.valueOf((int) ((double) this.captureIndex / PCValues.CAPTURE_TIME.get() * 100))))
                                     .send(this.player);
                         } else {
                             BroadcastUtil.broadcast(player -> HyriLanguageMessage.get("message.zone-captured").getValue(player).replace("%player%", this.formatNameWithTeam()));
