@@ -2,3 +2,4 @@ name: HyriPearlControl
 main: fr.hyriode.pearlcontrol.HyriPearlControl
 version: @version@
 author: AstFaster
+depend: [HyriBasics]

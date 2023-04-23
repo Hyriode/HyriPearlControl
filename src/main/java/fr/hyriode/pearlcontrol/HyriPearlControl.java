@@ -1,7 +1,6 @@
 package fr.hyriode.pearlcontrol;
 
 import fr.hyriode.api.HyriAPI;
-import fr.hyriode.api.server.IHyriServer;
 import fr.hyriode.hyggdrasil.api.server.HyggServer;
 import fr.hyriode.hyrame.HyrameLoader;
 import fr.hyriode.hyrame.IHyrame;
@@ -46,14 +45,6 @@ public class HyriPearlControl extends JavaPlugin {
         sender.sendMessage(color + " |_| \\___\\__,_|_| |_|\\___\\___/_||_\\__|_| \\___/_|");
 
         log("Starting " + NAME + "...");
-
-        // Default config for all pearl control maps
-        /*final PCConfig.GameArea spawnArea = new PCConfig.GameArea(new LocationWrapper(world, 30, 229, -26), new LocationWrapper(world, -19, 187, 20));
-        final PCConfig.GameArea gameArea = new PCConfig.GameArea(new LocationWrapper(world, -23, 130, -23), new LocationWrapper(world, -23, 80, 23));
-        final PCConfig.GameArea middleArea = new PCConfig.GameArea(new LocationWrapper(world, -2, 102, -2), new LocationWrapper(world, 2, 99, 2));
-        final LocationWrapper spawn = new LocationWrapper(world, 0.5, 100, 0.5, -90, 0);
-        final LocationWrapper worldSpawn = new LocationWrapper(world, 0.5, 200.5, 0.5, -90, 0);
-        final IConfig config = new PCConfig(spawn, spawnArea, worldSpawn, gameArea, middleArea);*/
 
         this.config = HyriAPI.get().getServer().getConfig(PCConfig.class);
         this.hyrame = HyrameLoader.load(new PCPluginProvider(this));
