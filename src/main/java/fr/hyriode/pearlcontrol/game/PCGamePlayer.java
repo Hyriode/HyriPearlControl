@@ -183,6 +183,13 @@ public class PCGamePlayer extends HyriGamePlayer {
             for (PCGamePlayer gamePlayer : this.plugin.getGame().getPlayers()) {
                 if (gamePlayer.isInMiddleArea() && !gamePlayer.getUniqueId().equals(this.uniqueId)) {
                     this.plugin.getGame().setCaptureAllowed(false);
+
+                    for (PCGamePlayer target : this.plugin.getGame().getPlayers()) {
+                        if (target.getCaptureTask() != null) {
+                            target.getCaptureTask().cancel();
+                        }
+                    }
+                    return;
                 }
             }
 
@@ -286,4 +293,7 @@ public class PCGamePlayer extends HyriGamePlayer {
         return this.pearls;
     }
 
+    public BukkitTask getCaptureTask() {
+        return this.captureTask;
+    }
 }
