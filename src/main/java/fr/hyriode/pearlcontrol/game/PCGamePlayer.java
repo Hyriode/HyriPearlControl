@@ -16,6 +16,7 @@ import org.bukkit.*;
 import org.bukkit.entity.EnderPearl;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import xyz.xenondevs.particle.ParticleEffect;
 
@@ -185,8 +186,10 @@ public class PCGamePlayer extends HyriGamePlayer {
                     this.plugin.getGame().setCaptureAllowed(false);
 
                     for (PCGamePlayer target : this.plugin.getGame().getPlayers()) {
-                        if (target.getCaptureTask() != null) {
-                            target.getCaptureTask().cancel();
+                        final BukkitTask captureTask = target.getCaptureTask();
+
+                        if (captureTask != null) {
+                            captureTask.cancel();
                         }
                     }
                     return;
@@ -205,18 +208,18 @@ public class PCGamePlayer extends HyriGamePlayer {
                                 ParticleUtil.animHelicoid(player.getLocation(), 1.5D, ParticleEffect.VILLAGER_HAPPY, 2, 1.0f);
                             }
 
-                            this.plugin.getGame().getPlayers().forEach(target -> {
-                                target.getPlayer().playSound(target.getPlayer().getLocation(), Sound.NOTE_PLING, 0.5f, 2.0f);
-
-                                if (target == this) {
-                                    return;
+                            for (PCGamePlayer target : this.plugin.getGame().getPlayers()) {
+                                if (target == this || !target.isOnline()) {
+                                    continue;
                                 }
+
+                                target.getPlayer().playSound(target.getPlayer().getLocation(), Sound.NOTE_PLING, 0.5f, 2.0f);
 
                                 new ActionBar(HyriLanguageMessage.get("action-bar.zone-in-capture").getValue(target)
                                         .replace("%player%", this.formatNameWithTeam())
                                         .replace("%percentage%", String.valueOf((int) ((double) this.captureIndex / PCValues.CAPTURE_TIME.get() * 100))))
                                         .send(target.getPlayer());
-                            });
+                            }
 
                             new ActionBar(HyriLanguageMessage.get("action-bar.capture.display")
                                     .getValue(this.player).replace("%percentage%", String.valueOf((int) ((double) this.captureIndex / PCValues.CAPTURE_TIME.get() * 100))))
