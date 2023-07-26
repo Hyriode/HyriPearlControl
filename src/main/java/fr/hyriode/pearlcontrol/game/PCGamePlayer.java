@@ -16,6 +16,7 @@ import org.bukkit.*;
 import org.bukkit.entity.EnderPearl;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import xyz.xenondevs.particle.ParticleEffect;
 
@@ -185,8 +186,10 @@ public class PCGamePlayer extends HyriGamePlayer {
                     this.plugin.getGame().setCaptureAllowed(false);
 
                     for (PCGamePlayer target : this.plugin.getGame().getPlayers()) {
-                        if (target.getCaptureTask() != null) {
-                            target.getCaptureTask().cancel();
+                        final BukkitTask captureTask = target.getCaptureTask();
+
+                        if (captureTask != null) {
+                            captureTask.cancel();
                         }
                     }
                     return;
@@ -206,15 +209,11 @@ public class PCGamePlayer extends HyriGamePlayer {
                             }
 
                             for (PCGamePlayer target : this.plugin.getGame().getPlayers()) {
-                                if (target.isOnline()) {
+                                if (target == this || !target.isOnline()) {
                                     continue;
                                 }
 
                                 target.getPlayer().playSound(target.getPlayer().getLocation(), Sound.NOTE_PLING, 0.5f, 2.0f);
-
-                                if (target == this) {
-                                    continue;
-                                }
 
                                 new ActionBar(HyriLanguageMessage.get("action-bar.zone-in-capture").getValue(target)
                                         .replace("%player%", this.formatNameWithTeam())
